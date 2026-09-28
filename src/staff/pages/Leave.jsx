@@ -12,7 +12,7 @@ import { useAuth } from '../hooks/useAuth'
 import * as store from '../../services/staffStore'
 import { LEAVE_TYPES } from '../../data/staff'
 import { fmtDate } from '../../admin/utils/format'
-import { StatusBadge, LeaveTypeTag } from '../components/common'
+import { StatusBadge, LeaveTypeTag } from '../../components/staff-common'
 
 const EMPTY = { type: 'annual', from: store.TODAY, to: store.TODAY, halfDay: false, half: 'am', reason: '', medicalCert: null }
 

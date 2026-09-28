@@ -6,8 +6,8 @@ import { Button } from '../../admin/components/ui'
 import { useStore } from '../../admin/hooks/useStore'
 import { useAuth } from '../hooks/useAuth'
 import * as store from '../../services/staffStore'
-import { money } from '../../admin/utils/format'
-import { MONTHS, monthLabel } from '../components/common'
+import { money, fmtDate } from '../../admin/utils/format'
+import { MONTHS, monthLabel } from '../../components/staff-common'
 
 export function Payslip({ staff, slip }) {
   if (!slip) return null
@@ -48,6 +48,7 @@ export default function Salary() {
   const { user, me } = useAuth()
   const [month, setMonth] = useState(store.monthOf(store.TODAY))
   const [slip] = useStore(() => store.payslip(user.id, month), [user.id, month])
+  const [run] = useStore(() => store.getPayrollRun(month), [month])
   if (!me || !slip) return null
 
   return (
@@ -60,7 +61,7 @@ export default function Salary() {
       </PageHeader>
 
       <div className="ad-grid ad-stats st-noprint" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
-        <StatCard index={0} icon={Wallet} tone="brand" value={money(slip.net)} label={`Net pay · ${monthLabel(month)}`} />
+        <StatCard index={0} icon={Wallet} tone="brand" value={money(slip.net)} label={`Net pay · ${monthLabel(month)}`} trend={run ? `Paid on ${fmtDate(run.paidAt)}` : 'Not paid yet'} up={!!run} />
         <StatCard index={1} icon={Clock3} tone="violet" value={money(slip.otAmount)} label={`Overtime · ${slip.otHours}h approved`} />
         <StatCard index={2} icon={MinusCircle} tone="red" value={money(slip.totalDeductions)} label="Total deductions" />
       </div>

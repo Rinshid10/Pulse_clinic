@@ -1,5 +1,5 @@
-import { Avatar, Badge } from '../../admin/components/ui'
-import { REQUEST_STATUS, CONCERN_STATUS, SHIFTS, LEAVE_TYPES } from '../../data/staff'
+import { Avatar, Badge } from '../admin/components/ui'
+import { REQUEST_STATUS, CONCERN_STATUS, SHIFTS, LEAVE_TYPES } from '../data/staff'
 
 export function StatusBadge({ status }) {
   const m = REQUEST_STATUS[status] || CONCERN_STATUS[status] || { label: status, kind: 'gray' }

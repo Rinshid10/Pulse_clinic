@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { CalendarOff, CalendarRange, Clock3, ClipboardCheck, MessageSquareWarning, Users, ArrowRight } from 'lucide-react'
+import { CalendarOff, CalendarRange, Clock3, ClipboardCheck, ArrowRight, Megaphone } from 'lucide-react'
 import StatCard from '../../admin/components/StatCard'
 import PageHeader from '../../admin/components/PageHeader'
 import { Button } from '../../admin/components/ui'
@@ -8,12 +8,13 @@ import { useStore } from '../../admin/hooks/useStore'
 import * as store from '../../services/staffStore'
 import { SHIFTS } from '../../data/staff'
 import { fmtDate } from '../../admin/utils/format'
-import { StatusBadge, ShiftCell, StaffCell, LeaveTypeTag } from '../components/common'
+import { StatusBadge, ShiftCell, StaffCell, LeaveTypeTag } from '../../components/staff-common'
 
 const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function Dashboard() {
-  const { user, isManager } = useAuth()
+  const { user, me } = useAuth()
+  const isManager = false
   const navigate = useNavigate()
   const id = user.id
 
@@ -36,12 +37,13 @@ export default function Dashboard() {
         ...ot.map((o) => ({ id: o.id, kind: 'Overtime', text: `${o.date} · ${o.hours}h`, status: o.status, at: o.date })),
         ...shiftReqs.filter((r) => r.fromStaffId === id).map((r) => ({ id: r.id, kind: r.kind === 'swap' ? 'Shift swap' : 'Handover', text: store.getShift(r.shiftId)?.date || '', status: r.status, at: r.createdAt })),
       ].sort((a, b) => (b.at || '').localeCompare(a.at || '')).slice(0, 6),
-      concerns: store.getConcerns(isManager ? undefined : id).filter((c) => c.status !== 'resolved').slice(0, 4),
+      concerns: store.getConcerns(id).filter((c) => c.status !== 'resolved').slice(0, 4),
+      announcements: store.announcementsFor(me).slice(0, 3),
       pending: store.pendingCounts(),
       onLeave: store.onLeaveOn(store.TODAY),
       staffById: Object.fromEntries(store.getStaff().map((s) => [s.id, s])),
     }
-  }, [id, isManager])
+  }, [id, me?.dept])
 
   const nextMeta = data.next ? SHIFTS[data.next.shift] : null
 
@@ -59,12 +61,12 @@ export default function Dashboard() {
         <StatCard index={3} icon={ClipboardCheck} tone="green" value={data.pendingMine} label="My requests awaiting approval" />
       </div>
 
-      {isManager && (
-        <div className="ad-grid ad-stats" style={{ marginTop: 16 }}>
-          <StatCard index={4} icon={ClipboardCheck} tone="amber" value={data.pending.leave + data.pending.shifts + data.pending.overtime} label="Approvals waiting for you" />
-          <StatCard index={5} icon={MessageSquareWarning} tone="red" value={data.pending.concerns} label="Open concerns" />
-          <StatCard index={6} icon={Users} tone="brand" value={data.onLeave.length} label="Staff on leave today" />
-          <StatCard index={7} icon={Users} tone="green" value={Object.values(data.staffById).filter((s) => s.active !== false).length} label="Active staff" />
+      {data.announcements.length > 0 && (
+        <div className="ad-card" style={{ marginTop: 22 }}>
+          <div className="ad-card__head"><h3><Megaphone size={15} style={{ verticalAlign: -2 }} /> Announcements</h3></div>
+          <div className="ad-card__body st-list">
+            {data.announcements.map((a) => <div className="st-row" key={a.id} style={{ alignItems: 'flex-start' }}><div style={{ flex: 1 }}><b>{a.title}</b><div className="ad-muted" style={{ fontSize: 13, marginTop: 4 }}>{a.body}</div><small className="ad-muted">{fmtDate(a.date)} · {a.by}</small></div></div>)}
+          </div>
         </div>
       )}
 
@@ -128,16 +130,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {isManager && data.onLeave.length > 0 && (
-        <div className="ad-card" style={{ marginTop: 22 }}>
-          <div className="ad-card__head"><h3>On leave today</h3></div>
-          <div className="ad-card__body">
-            <div className="st-list">
-              {data.onLeave.map((s) => <div className="st-row" key={s.id}><StaffCell staff={s} /></div>)}
-            </div>
-          </div>
-        </div>
-      )}
     </>
   )
 }

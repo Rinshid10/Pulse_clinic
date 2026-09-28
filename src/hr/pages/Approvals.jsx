@@ -11,7 +11,7 @@ import { useAuth } from '../hooks/useAuth'
 import * as store from '../../services/staffStore'
 import { SHIFTS } from '../../data/staff'
 import { fmtDate, money } from '../../admin/utils/format'
-import { StatusBadge, StaffCell, LeaveTypeTag } from '../components/common'
+import { StatusBadge, StaffCell, LeaveTypeTag } from '../../components/staff-common'
 
 const TABS = [['leave', 'Leave'], ['shifts', 'Shift changes'], ['overtime', 'Overtime']]
 

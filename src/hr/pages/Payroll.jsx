@@ -1,5 +1,10 @@
 import { useMemo, useState } from 'react'
-import { Banknote, Clock3, Users, Eye, Printer } from 'lucide-react'
+import { Banknote, Clock3, Users, Eye, Printer, CheckCircle2, History } from 'lucide-react'
+import ConfirmDialog from '../../admin/components/ConfirmDialog'
+import { useToast } from '../../admin/hooks/useToast'
+import { useAuth } from '../hooks/useAuth'
+import { Badge } from '../../admin/components/ui'
+import { fmtDate } from '../../admin/utils/format'
 import PageHeader from '../../admin/components/PageHeader'
 import DataTable from '../../admin/components/DataTable'
 import Modal from '../../admin/components/Modal'
@@ -8,12 +13,17 @@ import { Button } from '../../admin/components/ui'
 import { useStore } from '../../admin/hooks/useStore'
 import * as store from '../../services/staffStore'
 import { money } from '../../admin/utils/format'
-import { StaffCell, MONTHS, monthLabel } from '../components/common'
-import { Payslip } from './Salary'
+import { StaffCell, MONTHS, monthLabel } from '../../components/staff-common'
+import { Payslip } from '../../staff/pages/Salary'
 
 export default function Payroll() {
+  const toast = useToast()
+  const { user } = useAuth()
   const [month, setMonth] = useState(store.monthOf(store.TODAY))
   const [view, setView] = useState(null)
+  const [confirm, setConfirm] = useState(false)
+  const [run] = useStore(() => store.getPayrollRun(month), [month])
+  const [runs] = useStore(() => store.getPayrollRuns(), [])
   const [rows] = useStore(() =>
     store.getStaff().filter((s) => s.active !== false).map((s) => ({ ...s, slip: store.payslip(s.id, month) })),
   [month])
@@ -34,10 +44,11 @@ export default function Payroll() {
 
   return (
     <>
-      <PageHeader title="Payroll" subtitle="Net pay per staff member, calculated from salary structure, approved overtime and unpaid leave.">
-        <select value={month} onChange={(e) => setMonth(e.target.value)} style={{ width: 'auto' }}>
+      <PageHeader title="Payroll" subtitle="Net pay per employee from salary structure, approved overtime and unpaid leave. Running payroll snapshots the month and marks it paid.">
+        <select value={month} onChange={(e) => setMonth(e.target.value)} className="ad-select">
           {MONTHS.map((m) => <option key={m} value={m}>{monthLabel(m)}</option>)}
         </select>
+        {run ? <Badge kind="green"><CheckCircle2 size={13} /> Paid {fmtDate(run.paidAt)} · {money(run.total)}</Badge> : <Button onClick={() => setConfirm(true)}><Banknote size={16} /> Run payroll for {monthLabel(month)}</Button>}
       </PageHeader>
 
       <div className="ad-grid ad-stats">
@@ -50,6 +61,17 @@ export default function Payroll() {
       <div style={{ marginTop: 22 }}>
         <DataTable columns={columns} rows={rows} empty="No active staff." />
       </div>
+
+      <div className="ad-card" style={{ marginTop: 22 }}>
+        <div className="ad-card__head"><h3><History size={15} style={{ verticalAlign: -2 }} /> Payroll runs</h3></div>
+        <div className="ad-card__body">
+          {runs.length === 0 && <p className="ad-muted">No payroll has been run yet.</p>}
+          {runs.map((r) => <div className="ad-kv" key={r.id}><span><b>{monthLabel(r.month)}</b> · {r.count} employees · run by {r.by} on {fmtDate(r.paidAt)}</span><b>{money(r.total)}</b></div>)}
+        </div>
+      </div>
+
+      <ConfirmDialog open={confirm} title={`Run payroll for ${monthLabel(month)}?`} message={`${rows.length} employees · ${money(totals.net)} net. Every payslip is snapshotted and shown as paid in the staff portal.`} confirmLabel="Run payroll"
+        onCancel={() => setConfirm(false)} onConfirm={() => { const r = store.runPayroll(month, user.name); setConfirm(false); toast('Payroll run', `${monthLabel(month)} · ${money(r.total)} paid`) }} />
 
       <Modal open={!!view} onClose={() => setView(null)} title="Payslip" subtitle={view && `${view.name} · ${monthLabel(month)}`} width={640}
         footer={<><Button variant="ghost" onClick={() => setView(null)}>Close</Button><Button onClick={() => window.print()}><Printer size={15} /> Print</Button></>}>

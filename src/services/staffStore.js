@@ -51,7 +51,7 @@ export const isWeekend = (iso) => {
 /** Next working day after `iso` (skips Sat/Sun). */
 export const returnDate = (iso) => {
   let next = addDays(iso, 1)
-  while (isWeekend(next)) next = addDays(next, 1)
+  while (isWeekend(next) || isHoliday(next)) next = addDays(next, 1)
   return next
 }
 
@@ -69,8 +69,7 @@ export const addStaff = (data) => {
 export const updateStaff = (id, patch) =>
   write(KEYS.staff, getStaff().map((s) => (s.id === id ? { ...s, ...patch } : s)))
 export const setStaffActive = (id, active) => updateStaff(id, { active })
-export const defaultQuota = () =>
-  Object.fromEntries(Object.entries(LEAVE_TYPES).filter(([, v]) => v.quota).map(([k, v]) => [k, v.quota]))
+export const defaultQuota = () => getLeavePolicy()
 
 /* ============================================================
    LEAVE
@@ -270,3 +269,89 @@ export const onLeaveOn = (iso) => {
 export const resetStaffData = () => Object.values(KEYS).forEach((k) => localStorage.removeItem(k))
 
 export { LEAVE_TYPES, SHIFTS }
+
+/* ============================================================
+   TIME IN CLINIC (for the admin Staff overview)
+   Each rostered shift counts as 8 hours; approved overtime is added.
+   ============================================================ */
+export const SHIFT_HOURS = 8
+export const timeSummary = (staffId) => {
+  const worked = getShifts({ staffId, to: TODAY }).filter((s) => s.shift !== 'off')
+  const month = monthOf(TODAY)
+  const ot = getOvertime(staffId).filter((o) => o.status === 'approved')
+  const otMonth = ot.filter((o) => o.date.startsWith(month)).reduce((a, o) => a + o.hours, 0)
+  const otAll = ot.reduce((a, o) => a + o.hours, 0)
+  const shiftsMonth = worked.filter((s) => s.date.startsWith(month)).length
+  const shiftsToday = worked.find((s) => s.date === TODAY) || null
+  return {
+    daysWorked: worked.length,
+    hoursAll: worked.length * SHIFT_HOURS + otAll,
+    shiftsMonth,
+    hoursMonth: shiftsMonth * SHIFT_HOURS + otMonth,
+    otMonth, otAll,
+    today: shiftsToday,
+    onLeaveToday: getLeaveRequests(staffId).some((l) => l.status === 'approved' && l.from <= TODAY && l.to >= TODAY),
+  }
+}
+
+/* ============================================================
+   HR CONSOLE: leave policy, holidays, payroll runs, announcements
+   ============================================================ */
+KEYS.leavePolicy = 'pulse-leave-policy'
+KEYS.holidays = 'pulse-holidays'
+KEYS.payrollRuns = 'pulse-payroll-runs'
+KEYS.announcements = 'pulse-announcements'
+
+/* --- leave policy: default quotas for new staff --- */
+export const getLeavePolicy = () => ({ ...defaultQuotaFromTypes(), ...(read(KEYS.leavePolicy, null) || {}) })
+export const saveLeavePolicy = (policy) => write(KEYS.leavePolicy, policy)
+const defaultQuotaFromTypes = () =>
+  Object.fromEntries(Object.entries(LEAVE_TYPES).filter(([, v]) => v.quota).map(([k, v]) => [k, v.quota]))
+
+/* --- public holidays (skipped when computing the return date) --- */
+const SEED_HOLIDAYS = [
+  { id: 'h1', date: '2026-07-03', name: 'Independence Day (observed)' },
+  { id: 'h2', date: '2026-09-07', name: 'Labor Day' },
+  { id: 'h3', date: '2026-11-26', name: 'Thanksgiving' },
+  { id: 'h4', date: '2026-12-25', name: 'Christmas Day' },
+]
+export const getHolidays = () => read(KEYS.holidays, null) || write(KEYS.holidays, SEED_HOLIDAYS)
+export const addHoliday = ({ date, name }) => write(KEYS.holidays, [...getHolidays(), { id: uid('h'), date, name }].sort((a, b) => a.date.localeCompare(b.date)))
+export const deleteHoliday = (id) => write(KEYS.holidays, getHolidays().filter((h) => h.id !== id))
+export const isHoliday = (iso) => getHolidays().some((h) => h.date === iso)
+
+/* --- payroll runs: a snapshot of every payslip for a month, marked paid --- */
+export const getPayrollRuns = () => read(KEYS.payrollRuns, [])
+export const getPayrollRun = (month) => getPayrollRuns().find((r) => r.month === month) || null
+export const runPayroll = (month, by) => {
+  const staff = getStaff().filter((s) => s.active !== false)
+  const slips = staff.map((s) => ({ staffId: s.id, name: s.name, ...payslip(s.id, month) }))
+  const run = { id: uid('pr'), month, paidAt: TODAY, by, count: slips.length, total: Math.round(slips.reduce((a, p) => a + p.net, 0) * 100) / 100, slips }
+  write(KEYS.payrollRuns, [run, ...getPayrollRuns().filter((r) => r.month !== month)])
+  return run
+}
+
+/* --- announcements to staff --- */
+const SEED_ANNOUNCEMENTS = [
+  { id: 'an1', title: 'Fire drill on Thursday', body: 'A full building fire drill runs Thursday 2 July at 11:00. Please follow ward wardens to assembly point B.', audience: 'all', date: '2026-06-28', by: 'Amelia Hart' },
+  { id: 'an2', title: 'New ICU handover template', body: 'From next week, ICU nurses use the updated handover sheet available at the nurses’ station.', audience: 'Nursing', date: '2026-06-26', by: 'Marcus Lee' },
+]
+export const getAnnouncements = () => read(KEYS.announcements, null) || write(KEYS.announcements, SEED_ANNOUNCEMENTS)
+export const addAnnouncement = (data) => {
+  const rec = { id: uid('an'), date: TODAY, audience: 'all', ...data }
+  write(KEYS.announcements, [rec, ...getAnnouncements()])
+  return rec
+}
+export const deleteAnnouncement = (id) => write(KEYS.announcements, getAnnouncements().filter((a) => a.id !== id))
+/** Announcements a staff member should see (all + their department). */
+export const announcementsFor = (staff) => getAnnouncements().filter((a) => a.audience === 'all' || a.audience === staff?.dept)
+
+/* --- attendance rows for a month (HR Attendance page + CSV) --- */
+export const attendance = (month = monthOf(TODAY)) =>
+  getStaff().map((s) => {
+    const shifts = getShifts({ staffId: s.id }).filter((x) => x.shift !== 'off' && x.date.startsWith(month) && x.date <= TODAY)
+    const ot = getOvertime(s.id).filter((o) => o.status === 'approved' && o.date.startsWith(month)).reduce((a, o) => a + o.hours, 0)
+    const leaveDays = getLeaveRequests(s.id).filter((l) => l.status === 'approved' && l.from.startsWith(month)).reduce((a, l) => a + l.days, 0)
+    const t = timeSummary(s.id)
+    return { ...s, shifts: shifts.length, hours: shifts.length * SHIFT_HOURS + ot, ot, leaveDays, allTimeHours: t.hoursAll, daysWorked: t.daysWorked, onLeaveToday: t.onLeaveToday }
+  })

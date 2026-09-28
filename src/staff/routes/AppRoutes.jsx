@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import StaffLayout from '../layouts/StaffLayout'
 import Login from '../pages/Login'
@@ -9,11 +9,6 @@ import Overtime from '../pages/Overtime'
 import Salary from '../pages/Salary'
 import Concerns from '../pages/Concerns'
 import Profile from '../pages/Profile'
-import Team from '../pages/Team'
-import Approvals from '../pages/Approvals'
-import Payroll from '../pages/Payroll'
-
-const MGMT = ['manager', 'hr']
 
 export default function AppRoutes() {
   return (
@@ -27,9 +22,7 @@ export default function AppRoutes() {
         <Route path="salary" element={<Salary />} />
         <Route path="concerns" element={<Concerns />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="team" element={<ProtectedRoute roles={MGMT}><Team /></ProtectedRoute>} />
-        <Route path="approvals" element={<ProtectedRoute roles={MGMT}><Approvals /></ProtectedRoute>} />
-        <Route path="payroll" element={<ProtectedRoute roles={MGMT}><Payroll /></ProtectedRoute>} />
+        <Route path="*" element={<Navigate to="/staff" replace />} />
       </Route>
     </Routes>
   )

@@ -3,13 +3,14 @@
    Teal brand so the staff console reads differently from /admin,
    plus the few blocks the admin design system does not have.
    ============================================================ */
+/* Brand colours come from the Pulse website theme (Admin → Theme) via --brand / --violet on :root. */
 .admin.staff {
-  --ad-brand: #0d9488;
-  --ad-brand-600: #0f766e;
-  --ad-brand-soft: #d9f2ef;
-  --ad-violet: #14b8a6;
+  --ad-brand: var(--brand, #4f6cf7);
+  --ad-brand-600: var(--brand-600, #3f57d6);
+  --ad-brand-soft: var(--brand-soft, #eaeefe);
+  --ad-violet: var(--violet, #7b5cff);
 }
-.admin.staff[data-admin-theme='dark'] { --ad-brand-soft: #0f2f2c; }
+.admin.staff[data-admin-theme='dark'] { --ad-brand-soft: color-mix(in srgb, var(--brand, #4f6cf7) 22%, transparent); }
 
 .st-today { margin-left: auto; gap: 6px; }
 @media (max-width: 560px) { .st-today { display: none; } }

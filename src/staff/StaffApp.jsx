@@ -1,6 +1,7 @@
 import { AuthProvider } from './hooks/useAuth'
 import { ToastProvider } from '../admin/hooks/useToast'
 import AppRoutes from './routes/AppRoutes'
+import { useWebsiteTheme } from '../hooks/useWebsiteTheme'
 import '../admin/styles/admin.css'
 import './styles/staff.css'
 
@@ -8,6 +9,7 @@ import './styles/staff.css'
    Reuses the admin design system (admin.css + generic components)
    with its own auth, routes, layout and data. */
 export default function StaffApp() {
+  useWebsiteTheme()
   return (
     <AuthProvider>
       <ToastProvider>

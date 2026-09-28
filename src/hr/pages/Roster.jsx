@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { ChevronLeft, ChevronRight, ArrowLeftRight, CalendarDays } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ArrowLeftRight, Copy, CalendarDays } from 'lucide-react'
 import PageHeader from '../../admin/components/PageHeader'
 import Modal from '../../admin/components/Modal'
 import FormField from '../../admin/components/FormField'
@@ -16,8 +16,7 @@ import { StatusBadge, ShiftCell, StaffCell } from '../../components/staff-common
 const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function Roster() {
-  const { user } = useAuth()
-  const isManager = false // assignment moved to the HR console
+  const { user, isManager } = useAuth()
   const toast = useToast()
   const [ws, setWs] = useState(() => store.weekStart(store.TODAY))
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => store.addDays(ws, i)), [ws])
@@ -77,6 +76,7 @@ export default function Roster() {
   return (
     <>
       <PageHeader title="Duty Roster" subtitle={isManager ? 'Click any cell to assign a shift.' : 'Click one of your upcoming shifts to request a swap or handover.'}>
+        {isManager && <Button variant="ghost" onClick={() => { store.copyPreviousWeek(ws); toast('Week copied', 'Previous week’s roster applied') }}><Copy size={16} /> Copy previous week</Button>}
         <div className="ad-seg">
           <button onClick={() => setWs(store.addDays(ws, -7))}><ChevronLeft size={15} /></button>
           <button className="active" onClick={() => setWs(store.weekStart(store.TODAY))}><CalendarDays size={14} /> {fmtDate(ws)} – {fmtDate(week[6])}</button>

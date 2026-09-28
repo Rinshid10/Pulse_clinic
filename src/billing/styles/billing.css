@@ -1,11 +1,11 @@
-/* Billing desk — amber brand on top of admin.css so it reads differently from /admin and /staff. */
+/* Billing desk — brand colours come from the Pulse website theme (Admin → Theme) via --brand / --violet on :root. */
 .admin.billing {
-  --ad-brand: #d97706;
-  --ad-brand-600: #b45309;
-  --ad-brand-soft: #fdf1da;
-  --ad-violet: #f59e0b;
+  --ad-brand: var(--brand, #4f6cf7);
+  --ad-brand-600: var(--brand-600, #3f57d6);
+  --ad-brand-soft: var(--brand-soft, #eaeefe);
+  --ad-violet: var(--violet, #7b5cff);
 }
-.admin.billing[data-admin-theme='dark'] { --ad-brand-soft: #2c2412; }
+.admin.billing[data-admin-theme='dark'] { --ad-brand-soft: color-mix(in srgb, var(--brand, #4f6cf7) 22%, transparent); }
 
 .bl-today { margin-left: auto; gap: 6px; }
 @media (max-width: 560px) { .admin.billing .bl-today { display: none; } }

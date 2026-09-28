@@ -11,7 +11,7 @@ import { useStore } from '../../admin/hooks/useStore'
 import { useAuth } from '../hooks/useAuth'
 import * as store from '../../services/staffStore'
 import { fmtDate, money } from '../../admin/utils/format'
-import { StatusBadge, MONTHS, monthLabel } from '../components/common'
+import { StatusBadge, MONTHS, monthLabel } from '../../components/staff-common'
 
 export default function Overtime() {
   const { user, me } = useAuth()

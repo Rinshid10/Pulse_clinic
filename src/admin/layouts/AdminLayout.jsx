@@ -11,6 +11,7 @@ const TITLES = {
   '/admin/availability': { t: 'Availability & Leave', s: 'Working hours, slots & today leave' },
   '/admin/appointments': { t: 'Appointments', s: 'Confirm, reschedule & cancel bookings' },
   '/admin/patients': { t: 'Patients', s: 'Records & visit history' },
+  '/admin/staff': { t: 'Staff', s: 'Salary, time in clinic, leave & concerns' },
   '/admin/analytics': { t: 'Analytics', s: 'Performance & trends' },
   '/admin/theme': { t: 'Theme', s: 'Control the customer website colors' },
   '/admin/content': { t: 'Website Content', s: 'Edit homepage text & info' },

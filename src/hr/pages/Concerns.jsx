@@ -16,8 +16,7 @@ import { StatusBadge, StaffCell } from '../../components/staff-common'
 const EMPTY = { category: CONCERN_CATEGORIES[0], priority: 'medium', subject: '', body: '' }
 
 export default function Concerns() {
-  const { user } = useAuth()
-  const isManager = false // the HR console handles the inbox
+  const { user, isManager } = useAuth()
   const toast = useToast()
   const [all] = useStore(() => store.getConcerns(isManager ? undefined : user.id), [user.id, isManager])
   const [staffById] = useStore(() => Object.fromEntries(store.getStaff().map((s) => [s.id, s])), [])
@@ -49,7 +48,7 @@ export default function Concerns() {
 
   return (
     <>
-      <PageHeader title="Concerns" subtitle={isManager ? 'Every concern raised by the team. Reply and update the status.' : 'Salary, overtime, schedule or workplace issues — raise them here.'}>
+      <PageHeader title="Concerns" subtitle="Every concern raised by the team. Reply and update the status.">
         <Button onClick={() => setOpen(true)}><Plus size={16} /> Raise a concern</Button>
       </PageHeader>
 

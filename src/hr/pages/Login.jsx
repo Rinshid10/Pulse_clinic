@@ -1,19 +1,21 @@
 import { useState } from 'react'
 import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { Activity, Mail, Lock, ArrowRight, ShieldCheck, CalendarClock, Palette } from 'lucide-react'
+import { UsersRound, Mail, Lock, ArrowRight, ClipboardCheck, CalendarRange, Banknote } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
-import { Button } from '../components/ui'
+import { Button } from '../../admin/components/ui'
+import { DEMO_USERS } from '../services/authService'
+import '../styles/hr.css'
 
 export default function Login() {
   const { user, login } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const [form, setForm] = useState({ email: 'admin@pulse.com', password: 'admin123' })
+  const [form, setForm] = useState({ email: 'hr@pulse.com', password: 'staff123' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  if (user) return <Navigate to="/admin" replace />
+  if (user) return <Navigate to="/hr" replace />
 
   const submit = (e) => {
     e.preventDefault()
@@ -22,42 +24,40 @@ export default function Login() {
     setTimeout(() => {
       try {
         login(form)
-        navigate(location.state?.from?.pathname || '/admin', { replace: true })
+        navigate(location.state?.from?.pathname || '/hr', { replace: true })
       } catch (err) {
         setError(err.message)
         setLoading(false)
       }
-    }, 500)
+    }, 450)
   }
 
-  const fill = (email) => setForm({ email, password: 'admin123' })
-
   return (
-    <div className="admin" data-admin-theme="light">
+    <div className="admin hr" data-admin-theme="light">
       <div className="ad-login">
         <div className="ad-login__art">
           <div className="ad-brand" style={{ padding: 0, color: '#fff' }}>
             <div className="ad-brand__mark" style={{ background: 'rgba(255,255,255,.2)' }}>
-              <Activity size={22} strokeWidth={2.6} />
+              <UsersRound size={22} strokeWidth={2.6} />
             </div>
             <div>
-              <div className="ad-brand__name" style={{ color: '#fff' }}>Pulse Admin</div>
-              <div className="ad-brand__sub" style={{ color: 'rgba(255,255,255,.8)' }}>Clinic Console</div>
+              <div className="ad-brand__name" style={{ color: '#fff' }}>Pulse HR</div>
+              <div className="ad-brand__sub" style={{ color: 'rgba(255,255,255,.8)' }}>People management</div>
             </div>
           </div>
 
           <div>
             <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              Run your entire clinic from one dashboard.
+              Look after the people who look after patients.
             </motion.h2>
             <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-              Manage doctors, appointments, leave, website content and theme — all in real time.
+              Employee records, approvals, rosters, attendance, payroll runs, leave policy and announcements — all in one place.
             </motion.p>
             <div className="ad-login__feats" style={{ marginTop: 28 }}>
               {[
-                { Icon: CalendarClock, t: 'Doctor leave & availability control' },
-                { Icon: Palette, t: 'Live customer-website theming' },
-                { Icon: ShieldCheck, t: 'Role-based secure access' },
+                { Icon: ClipboardCheck, t: 'Approve leave, shift changes & overtime' },
+                { Icon: CalendarRange, t: 'Build the weekly roster' },
+                { Icon: Banknote, t: 'Run payroll & manage leave policy' },
               ].map(({ Icon, t }, i) => (
                 <motion.div key={t} className="ad-login__feat" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.1 }}>
                   <span><Icon size={18} /></span> {t}
@@ -66,13 +66,13 @@ export default function Login() {
             </div>
           </div>
 
-          <span style={{ fontSize: 13, opacity: 0.75, position: 'relative' }}>© 2026 Pulse Clinic</span>
+          <span style={{ fontSize: 13, opacity: 0.75, position: 'relative' }}>© 2026 Pulse Clinic · HR &amp; managers only</span>
         </div>
 
         <div className="ad-login__form">
           <motion.div className="ad-login__box" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <h1>Welcome back 👋</h1>
-            <p>Sign in to your admin account to continue.</p>
+            <h1>HR sign in</h1>
+            <p>Use your Pulse HR or manager account.</p>
 
             {error && <div className="ad-login__err">{error}</div>}
 
@@ -97,15 +97,14 @@ export default function Login() {
             </form>
 
             <div className="ad-login__demo">
-              <b>Demo accounts</b> (password: admin123)
+              <b>Demo accounts</b>
               <div style={{ display: 'grid', gap: 4, marginTop: 8 }}>
-                <button onClick={() => fill('admin@pulse.com')}>admin@pulse.com — Administrator</button>
-                <button onClick={() => fill('manager@pulse.com')}>manager@pulse.com — Manager</button>
-                <button onClick={() => fill('reception@pulse.com')}>reception@pulse.com — Receptionist</button>
+                {DEMO_USERS.map((u) => <button key={u.email} onClick={() => setForm({ email: u.email, password: u.password })}>{u.email} — {u.label}</button>)}
+                <button onClick={() => setForm({ email: 'admin@pulse.com', password: 'admin123' })}>admin@pulse.com — Clinic administrator</button>
               </div>
             </div>
             <p style={{ marginTop: 18, fontSize: 12.5, color: 'var(--ad-text-3)' }}>
-              Other consoles: <a href="/staff/login" style={{ color: 'var(--ad-brand-600)', fontWeight: 700 }}>Staff portal</a> · <a href="/billing/login" style={{ color: 'var(--ad-brand-600)', fontWeight: 700 }}>Billing desk</a> · <a href="/hr/login" style={{ color: 'var(--ad-brand-600)', fontWeight: 700 }}>HR console</a>
+              Not HR? <a href="/staff/login" style={{ color: 'var(--ad-brand-600)', fontWeight: 700 }}>Staff portal</a> · <a href="/admin/login" style={{ color: 'var(--ad-brand-600)', fontWeight: 700 }}>Admin</a>
             </p>
           </motion.div>
         </div>
