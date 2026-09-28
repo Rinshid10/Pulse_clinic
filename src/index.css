@@ -404,6 +404,40 @@ a { color: inherit; text-decoration: none; }
 .bk-card__foot { display: flex; gap: 10px; margin-top: 18px; }
 .bk-card__foot .btn { flex: 1; }
 
+
+/* ===================== Booking confirmation ===================== */
+.booked { padding: 46px 32px; text-align: center; }
+.booked__close { display: none; }
+.booked__icon { width: 78px; height: 78px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; margin: 0 auto 20px; }
+.booked__title { font-size: 22px; font-weight: 800; }
+.booked__text { color: var(--text-2); margin-top: 14px; font-size: 15px; }
+.booked__summary { margin-top: 22px; text-align: left; background: var(--surface-2); border: 1px solid var(--border); border-radius: 16px; padding: 6px 16px; }
+.booked__row { display: flex; align-items: center; gap: 10px; padding: 12px 0; font-size: 14px; }
+.booked__row + .booked__row { border-top: 1px solid var(--border); }
+.booked__row svg { color: var(--text-3); flex-shrink: 0; }
+.booked__row span { color: var(--text-3); }
+.booked__row b { margin-left: auto; font-weight: 700; text-align: right; }
+.booked__actions { display: flex; gap: 10px; justify-content: center; margin-top: 26px; flex-wrap: wrap; }
+
+/* On phones the confirmation becomes a full screen instead of a floating card */
+.scrim--fullscreen { padding: 0; align-items: stretch; backdrop-filter: none; }
+.modal--fullscreen {
+  width: 100%; max-width: none; height: 100vh; height: 100dvh; max-height: none;
+  border-radius: 0; box-shadow: none; margin: 0;
+  display: flex; flex-direction: column;
+}
+.modal--fullscreen .booked {
+  flex: 1; display: flex; flex-direction: column;
+  padding: calc(24px + env(safe-area-inset-top)) 22px calc(20px + env(safe-area-inset-bottom));
+}
+.modal--fullscreen .booked__close { display: grid; position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 14px; }
+.modal--fullscreen .booked__main { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.modal--fullscreen .booked__icon { width: 96px; height: 96px; margin-bottom: 24px; }
+.modal--fullscreen .booked__title { font-size: 28px; letter-spacing: -.02em; }
+.modal--fullscreen .booked__text { font-size: 16px; }
+.modal--fullscreen .booked__actions { flex-direction: column-reverse; margin-top: 24px; }
+.modal--fullscreen .booked__actions .btn { width: 100%; }
+
 /* ===================== Toast ===================== */
 .toasts { position: fixed; bottom: 22px; right: 22px; z-index: 300; display: flex; flex-direction: column; gap: 10px; }
 .toast { display: flex; align-items: center; gap: 11px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg); border-radius: 14px; padding: 13px 16px; min-width: 280px; }

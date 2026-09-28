@@ -1,7 +1,7 @@
 export const initials = (name = '') =>
   name.replace(/^Dr\.\s*/, '').split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase()
 
-export const money = (n) => `$${Number(n || 0).toLocaleString()}`
+export const money = (n) => { const v = Number(n || 0); return `$${v.toLocaleString('en-US', { minimumFractionDigits: Number.isInteger(v) ? 0 : 2, maximumFractionDigits: 2 })}` }
 
 export const fmtDate = (iso) => {
   if (!iso) return '—'

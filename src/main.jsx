@@ -4,28 +4,25 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App'
 import './index.css'
 
-// Admin panel is code-split: the customer site never downloads admin/charts code.
+// Admin panel and staff portal are code-split: the customer site never downloads them.
 const AdminApp = lazy(() => import('./admin/AdminApp'))
+const StaffApp = lazy(() => import('./staff/StaffApp'))
+const BillingApp = lazy(() => import('./billing/BillingApp'))
+
+const Loader = ({ color = '#4f6cf7' }) => (
+  <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', background: '#f4f6fb' }}>
+    <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid #e7ecf5', borderTopColor: color, animation: 'adspin .8s linear infinite' }} />
+    <style>{'@keyframes adspin{to{transform:rotate(360deg)}}'}</style>
+  </div>
+)
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
-        <Route
-          path="/admin/*"
-          element={
-            <Suspense
-              fallback={
-                <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', background: '#f4f6fb' }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', border: '3px solid #e7ecf5', borderTopColor: '#4f6cf7', animation: 'adspin .8s linear infinite' }} />
-                  <style>{'@keyframes adspin{to{transform:rotate(360deg)}}'}</style>
-                </div>
-              }
-            >
-              <AdminApp />
-            </Suspense>
-          }
-        />
+        <Route path="/admin/*" element={<Suspense fallback={<Loader />}><AdminApp /></Suspense>} />
+        <Route path="/staff/*" element={<Suspense fallback={<Loader color="#0d9488" />}><StaffApp /></Suspense>} />
+        <Route path="/billing/*" element={<Suspense fallback={<Loader color="#d97706" />}><BillingApp /></Suspense>} />
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>

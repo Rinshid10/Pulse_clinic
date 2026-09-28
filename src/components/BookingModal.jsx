@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, CheckCircle2 } from 'lucide-react'
+import { X, CheckCircle2, CalendarDays, Clock, Stethoscope, ClipboardList } from 'lucide-react'
 import { TYPE_META } from '../data/clinic'
 import { useToast } from '../hooks/useToast'
 import { useDoctors } from '../hooks/useClinic'
+import { useIsMobile } from '../hooks/useIsMobile'
 
 export default function BookingModal({ open, preset, onClose, onConfirm, onViewBookings }) {
   const toast = useToast()
   const DOCTORS = useDoctors()
+  const isMobile = useIsMobile()
   const [done, setDone] = useState(false)
   const [form, setForm] = useState({
     name: '', phone: '', doctorId: '',
@@ -43,15 +45,19 @@ export default function BookingModal({ open, preset, onClose, onConfirm, onViewB
     const doc = DOCTORS.find((d) => d.id === form.doctorId)
     onConfirm?.({ ...form })
     setDone(true)
-    toast('Appointment booked', `${doc?.name || 'Doctor'} · ${form.date} at ${form.time}`)
+    // On mobile the confirmation takes over the whole screen, so a toast would only overlap it.
+    if (!isMobile) toast('Appointment booked', `${doc?.name || 'Doctor'} · ${form.date} at ${form.time}`)
   }
+
+  const bookedDoctor = DOCTORS.find((d) => d.id === form.doctorId)
+  const fullscreen = done && isMobile
 
   return (
     <AnimatePresence>
       {open && (
-          <motion.div className="scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+          <motion.div className={`scrim${fullscreen ? ' scrim--fullscreen' : ''}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
           <motion.div
-            className="modal"
+            className={`modal${fullscreen ? ' modal--fullscreen' : ''}`}
             onClick={(e) => e.stopPropagation()}
             initial={{ opacity: 0, scale: 0.94, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -59,24 +65,39 @@ export default function BookingModal({ open, preset, onClose, onConfirm, onViewB
             transition={{ duration: 0.28, ease: [0.22, 0.8, 0.2, 1] }}
           >
             {done ? (
-              <div style={{ padding: '46px 32px', textAlign: 'center' }}>
-                <motion.div
-                  initial={{ scale: 0, rotate: -30 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ type: 'spring', stiffness: 220, damping: 14 }}
-                  style={{ width: 78, height: 78, borderRadius: '50%', background: 'var(--accent-soft)', color: 'var(--accent)', display: 'grid', placeItems: 'center', margin: '0 auto 20px' }}
-                >
-                  <CheckCircle2 size={42} />
-                </motion.div>
-                <h3 style={{ fontSize: 22, fontWeight: 800 }}>You're all set!</h3>
-                <div style={{ marginTop: 14 }}>
-                  <span className="badge badge--amber">Booked</span>
+              <div className="booked">
+                {fullscreen && (
+                  <button type="button" className="icon-btn booked__close" onClick={onClose} aria-label="Close"><X size={18} /></button>
+                )}
+                <div className="booked__main">
+                  <motion.div
+                    className="booked__icon"
+                    initial={{ scale: 0, rotate: -30 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: 'spring', stiffness: 220, damping: 14 }}
+                  >
+                    <CheckCircle2 size={42} />
+                  </motion.div>
+                  <h3 className="booked__title">You're all set!</h3>
+                  <div style={{ marginTop: 14 }}>
+                    <span className="badge badge--amber">Booked</span>
+                  </div>
+                  <p className="booked__text">
+                    Your appointment is booked. Our team will call {form.phone} shortly to confirm. You can track its
+                    status anytime under <b>My bookings</b>.
+                  </p>
+
+                  {fullscreen && (
+                    <div className="booked__summary">
+                      <div className="booked__row"><Stethoscope size={16} /><span>Doctor</span><b>{bookedDoctor?.name || 'Doctor'}</b></div>
+                      <div className="booked__row"><CalendarDays size={16} /><span>Date</span><b>{form.date}</b></div>
+                      <div className="booked__row"><Clock size={16} /><span>Time</span><b>{form.time}</b></div>
+                      <div className="booked__row"><ClipboardList size={16} /><span>Visit</span><b>{form.type}</b></div>
+                    </div>
+                  )}
                 </div>
-                <p style={{ color: 'var(--text-2)', marginTop: 14, fontSize: 15 }}>
-                  Your appointment is booked. Our team will call {form.phone} shortly to confirm. You can track its
-                  status anytime under <b>My bookings</b>.
-                </p>
-                <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 26, flexWrap: 'wrap' }}>
+
+                <div className="booked__actions">
                   <button className="btn btn--ghost btn--lg" onClick={onClose}>Done</button>
                   <button className="btn btn--primary btn--lg" onClick={onViewBookings}>View my bookings</button>
                 </div>

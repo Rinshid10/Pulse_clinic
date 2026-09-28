@@ -61,6 +61,8 @@ export function subscribe(handler) {
 }
 
 const uid = (p) => `${p}-${Date.now()}-${Math.floor(performance.now() % 100000)}`
+/* Shared with src/services/staffStore.js so both stores emit the same change event. */
+export { read, write, uid }
 
 /* ============================================================
    DOCTORS

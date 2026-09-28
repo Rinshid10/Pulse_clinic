@@ -8,6 +8,7 @@ import { useStore } from '../hooks/useStore'
 import * as analytics from '../services/analyticsService'
 import { listAppointments } from '../services/appointmentService'
 import { getDoctor, getLeaves, TODAY } from '../../services/clinicStore'
+import { billingSummary } from '../../services/billingStore'
 import { STATUS_BADGE } from '../utils/constants'
 import { money, to12h } from '../utils/format'
 
@@ -18,6 +19,7 @@ export default function Dashboard() {
   const [stats] = useStore(() => analytics.overview(), [])
   const [appts] = useStore(() => listAppointments(), [])
   const [leaves] = useStore(() => getLeaves(), [])
+  const [billing] = useStore(() => billingSummary(), [])
   const weekly = analytics.weekly()
   const status = analytics.statusBreakdown()
 
@@ -36,7 +38,7 @@ export default function Dashboard() {
         <StatCard index={0} icon={CalendarDays} tone="brand" value={stats.todayCount} label="Appointments today" trend="12%" up />
         <StatCard index={1} icon={Stethoscope} tone="green" value={stats.activeDoctors} label="Active doctors" trend={`${stats.totalDoctors} total`} up />
         <StatCard index={2} icon={Users} tone="violet" value={stats.totalPatients} label="Total patients" trend="6%" up />
-        <StatCard index={3} icon={DollarSign} tone="amber" value={money(stats.revenue)} label="Revenue (completed)" trend="9%" up />
+        <StatCard index={3} icon={DollarSign} tone="amber" value={money(billing.combinedToday)} label="Collected today (clinic + pharmacy)" trend={`${billing.todayCount} bills · pharmacy ${money(billing.pharmacyToday)}`} up />
       </div>
       <div className="ad-grid ad-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 18 }}>
         <StatCard index={0} icon={Clock3} tone="amber" value={stats.pending} label="Pending bookings" trend="needs review" up={false} />

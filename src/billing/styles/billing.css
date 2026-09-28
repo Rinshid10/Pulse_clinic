@@ -1,0 +1,12 @@
+/* Billing desk — amber brand on top of admin.css so it reads differently from /admin and /staff. */
+.admin.billing {
+  --ad-brand: #d97706;
+  --ad-brand-600: #b45309;
+  --ad-brand-soft: #fdf1da;
+  --ad-violet: #f59e0b;
+}
+.admin.billing[data-admin-theme='dark'] { --ad-brand-soft: #2c2412; }
+
+.bl-today { margin-left: auto; gap: 6px; }
+@media (max-width: 560px) { .admin.billing .bl-today { display: none; } }
+.admin.billing .ad-grid > * { min-width: 0; }
