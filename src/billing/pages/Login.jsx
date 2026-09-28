@@ -44,22 +44,22 @@ export default function Login() {
             </div>
             <div>
               <div className="ad-brand__name" style={{ color: '#fff' }}>Pulse Billing</div>
-              <div className="ad-brand__sub" style={{ color: 'rgba(255,255,255,.8)' }}>Billing &amp; pharmacy desk</div>
+              <div className="ad-brand__sub" style={{ color: 'rgba(255,255,255,.8)' }}>Consultation billing</div>
             </div>
           </div>
 
           <div>
             <motion.h2 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              Bill patients and sell medicines from one desk.
+              Bill every consultation in seconds.
             </motion.h2>
             <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-              Consultation bills with 7-day free follow-up validity, pharmacy sales with stock and customer history, and today’s totals.
+              Patient name, age and doctor on every bill, an automatic free follow-up within 7 days, and today’s totals for the admin.
             </motion.p>
             <div className="ad-login__feats" style={{ marginTop: 28 }}>
               {[
                 { Icon: Receipt, t: 'Consultation bills & daily totals' },
                 { Icon: BadgeCheck, t: 'Automatic free follow-up within 7 days' },
-                { Icon: Pill, t: 'Pharmacy sales, stock & purchase history' },
+                { Icon: Pill, t: 'Patient visit history at a glance' },
               ].map(({ Icon, t }, i) => (
                 <motion.div key={t} className="ad-login__feat" initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 + i * 0.1 }}>
                   <span><Icon size={18} /></span> {t}
@@ -74,7 +74,7 @@ export default function Login() {
         <div className="ad-login__form">
           <motion.div className="ad-login__box" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
             <h1>Billing desk sign in</h1>
-            <p>Sign in to create bills and pharmacy sales.</p>
+            <p>Sign in to create consultation bills.</p>
 
             {error && <div className="ad-login__err">{error}</div>}
 

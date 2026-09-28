@@ -1,12 +1,12 @@
-/* Billing desk auth (consultation bills) — separate session from the pharmacy desk, admin console and staff portal. */
-const SESSION_KEY = 'pulse-billing-session'
+/* Pharmacy desk auth — separate session from the billing desk, admin console and staff portal. */
+const SESSION_KEY = 'pulse-pharmacy-session'
 
 const USERS = [
-  { id: 'bu1', email: 'admin@pulse.com',    password: 'admin123', name: 'Amelia Hart', role: 'admin',      color: '#4f6cf7' },
-  { id: 'bu2', email: 'cashier@pulse.com',  password: 'admin123', name: 'Sofia Reyes', role: 'cashier',    color: '#f59e0b' },
+  { id: 'pu1', email: 'admin@pulse.com',    password: 'admin123', name: 'Amelia Hart', role: 'admin',      color: '#4f6cf7' },
+  { id: 'pu2', email: 'pharmacy@pulse.com', password: 'admin123', name: 'Aisha Khan',  role: 'pharmacist', color: '#a855f7' },
 ]
 
-export const ROLE_LABEL = { admin: 'Administrator', cashier: 'Billing desk' }
+export const ROLE_LABEL = { admin: 'Administrator', pharmacist: 'Pharmacist' }
 
 export function login({ email, password }) {
   const user = USERS.find((u) => u.email === email.trim().toLowerCase() && u.password === password)

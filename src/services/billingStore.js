@@ -10,7 +10,7 @@
    Same localStorage + `pulse:store` event mechanism as clinicStore.
    ============================================================ */
 
-import { read, write, uid, subscribe, TODAY, getDoctors, getDoctor } from './clinicStore'
+import { read, write, uid, subscribe, TODAY, getDoctors, getDoctor, addNotification } from './clinicStore'
 
 export { subscribe, TODAY }
 
@@ -263,3 +263,36 @@ export const deletePharmacyBill = (id) => write(KEYS.pharmacyBills, getPharmacyB
 export const resetBillingData = () => Object.values(KEYS).forEach((k) => localStorage.removeItem(k))
 
 export { getDoctors, getDoctor }
+
+/* ============================================================
+   MEDICINE REQUESTS — pharmacy desk asks admin for restock / new medicines
+   ============================================================ */
+KEYS.medicineRequests = 'pulse-medicine-requests'
+
+const SEED_REQUESTS = [
+  { id: 'mr1', kind: 'restock', medicineId: 'm4', name: 'Azithromycin 250mg', qty: 40, reason: 'Only 14 strips left, high demand this week', status: 'pending', by: 'Aisha Khan', date: '2026-06-28' },
+  { id: 'mr2', kind: 'new', name: 'Loratadine 10mg', category: 'Tablet', unit: 'strip of 10', qty: 50, price: 2.2, reason: 'Patients keep asking for a non-drowsy antihistamine', status: 'pending', by: 'Aisha Khan', date: '2026-06-27' },
+  { id: 'mr3', kind: 'restock', medicineId: 'm8', name: 'ORS sachet', qty: 200, reason: 'Summer stock-up', status: 'approved', by: 'Aisha Khan', date: '2026-06-20', decidedBy: 'Amelia Hart', decidedAt: '2026-06-21', note: 'Ordered from supplier' },
+]
+export const getMedicineRequests = () => read(KEYS.medicineRequests, null) || write(KEYS.medicineRequests, SEED_REQUESTS)
+export const pendingMedicineRequests = () => getMedicineRequests().filter((r) => r.status === 'pending').length
+
+/** kind: 'restock' (medicineId + qty) or 'new' (name, category, unit, qty, price). */
+export const requestMedicine = (data) => {
+  const med = data.medicineId ? getMedicine(data.medicineId) : null
+  const rec = { id: uid('mr'), status: 'pending', date: TODAY, ...data, name: med?.name || data.name, qty: Number(data.qty) || 0, price: Number(data.price) || 0 }
+  write(KEYS.medicineRequests, [rec, ...getMedicineRequests()])
+  addNotification({ type: 'system', title: rec.kind === 'new' ? 'New medicine suggested' : 'Restock requested', body: `${rec.by}: ${rec.name} × ${rec.qty}` })
+  return rec
+}
+
+/** Approving a restock adds stock; approving a new medicine adds it to the catalog. */
+export const decideMedicineRequest = (id, status, by, note = '') => {
+  const all = getMedicineRequests()
+  const rec = all.find((r) => r.id === id)
+  if (!rec) return
+  write(KEYS.medicineRequests, all.map((r) => (r.id === id ? { ...r, status, decidedBy: by, decidedAt: TODAY, note } : r)))
+  if (status !== 'approved') return
+  if (rec.kind === 'restock' && rec.medicineId && getMedicine(rec.medicineId)) restock(rec.medicineId, rec.qty)
+  else addMedicine({ name: rec.name, category: rec.category || 'Other', unit: rec.unit || '', price: rec.price || 0, stock: rec.qty })
+}

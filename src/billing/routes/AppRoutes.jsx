@@ -1,11 +1,10 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './ProtectedRoute'
 import BillingLayout from '../layouts/BillingLayout'
 import Login from '../pages/Login'
 import Overview from '../pages/Overview'
 import Bills from '../pages/Bills'
-import Pharmacy from '../pages/Pharmacy'
-import MedicineBills from '../pages/MedicineBills'
+import NewBill from '../pages/NewBill'
 
 export default function AppRoutes() {
   return (
@@ -13,9 +12,9 @@ export default function AppRoutes() {
       <Route path="login" element={<Login />} />
       <Route element={<ProtectedRoute><BillingLayout /></ProtectedRoute>}>
         <Route index element={<Overview />} />
-        <Route path="bills" element={<ProtectedRoute roles={['admin', 'cashier']}><Bills /></ProtectedRoute>} />
-        <Route path="medicine-bills" element={<MedicineBills />} />
-        <Route path="pharmacy" element={<ProtectedRoute roles={['admin', 'pharmacist']}><Pharmacy /></ProtectedRoute>} />
+        <Route path="new" element={<NewBill />} />
+        <Route path="bills" element={<Bills />} />
+        <Route path="*" element={<Navigate to="/billing" replace />} />
       </Route>
     </Routes>
   )

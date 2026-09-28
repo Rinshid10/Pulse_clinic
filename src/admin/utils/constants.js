@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, Stethoscope, CalendarClock, CalendarDays,
-  Users, BarChart3, Palette, FileText, Bell, ShieldCheck, BriefcaseBusiness,
+  Users, BarChart3, Palette, FileText, Bell, ShieldCheck, BriefcaseBusiness, Pill,
 } from 'lucide-react'
 
 /* Sidebar nav — `roles` restricts visibility (role-based access). */
@@ -11,6 +11,7 @@ export const NAV = [
   { to: '/admin/appointments', label: 'Appointments', Icon: CalendarDays, roles: ['admin', 'manager', 'receptionist'] },
   { to: '/admin/patients', label: 'Patients', Icon: Users, roles: ['admin', 'manager', 'receptionist'] },
   { to: '/admin/staff', label: 'Staff', Icon: BriefcaseBusiness, roles: ['admin', 'manager'] },
+  { to: '/admin/medicines', label: 'Medicine stock', Icon: Pill, roles: ['admin', 'manager'] },
   { to: '/admin/analytics', label: 'Analytics', Icon: BarChart3, roles: ['admin', 'manager'] },
   { to: '/admin/theme', label: 'Theme', Icon: Palette, roles: ['admin'] },
   { to: '/admin/content', label: 'Website Content', Icon: FileText, roles: ['admin'] },

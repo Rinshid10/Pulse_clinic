@@ -8,6 +8,7 @@ import Availability from '../pages/Availability'
 import Appointments from '../pages/Appointments'
 import Patients from '../pages/Patients'
 import Staff from '../pages/Staff'
+import MedicineStock from '../pages/MedicineStock'
 import Analytics from '../pages/Analytics'
 import ThemeSettings from '../pages/ThemeSettings'
 import ContentSettings from '../pages/ContentSettings'
@@ -31,6 +32,7 @@ export default function AppRoutes() {
         <Route path="appointments" element={<Appointments />} />
         <Route path="patients" element={<Patients />} />
         <Route path="staff" element={<ProtectedRoute roles={['admin', 'manager']}><Staff /></ProtectedRoute>} />
+        <Route path="medicines" element={<ProtectedRoute roles={['admin', 'manager']}><MedicineStock /></ProtectedRoute>} />
         <Route path="analytics" element={<ProtectedRoute roles={['admin', 'manager']}><Analytics /></ProtectedRoute>} />
         <Route path="theme" element={<ProtectedRoute roles={['admin']}><ThemeSettings /></ProtectedRoute>} />
         <Route path="content" element={<ProtectedRoute roles={['admin']}><ContentSettings /></ProtectedRoute>} />

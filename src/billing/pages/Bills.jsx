@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Printer, Eye, Trash2, DollarSign, Receipt, BadgeCheck, CalendarDays, X } from 'lucide-react'
 import PageHeader from '../../admin/components/PageHeader'
 import DataTable from '../../admin/components/DataTable'
@@ -13,8 +14,6 @@ import { useAuth } from '../hooks/useAuth'
 import * as store from '../../services/billingStore'
 import { money, fmtDate, to12h } from '../../admin/utils/format'
 import { printHtml, esc } from '../../admin/utils/print'
-
-const BLANK = { name: '', age: '', gender: '', phone: '', doctorId: '', extras: [], discount: 0, method: 'Cash', note: '', forceCharge: false }
 
 export function ValidityBadge({ bill }) {
   if (bill.type === 'follow-up') return <Badge kind="violet">Free follow-up</Badge>
@@ -51,16 +50,14 @@ export function billHtml(bill) {
 
 export default function Bills() {
   const toast = useToast()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [bills] = useStore(() => store.getBills(), [])
   const [summary] = useStore(() => store.billingSummary(), [])
   const [doctors] = useStore(() => store.getDoctors(), [])
-  const [known] = useStore(() => store.knownPatients(), [])
   const [range, setRange] = useState('today')
   const [q, setQ] = useState('')
   const [doctorF, setDoctorF] = useState('all')
-  const [open, setOpen] = useState(false)
-  const [form, setForm] = useState(BLANK)
   const [view, setView] = useState(null)
   const [history, setHistory] = useState(null)
   const [del, setDel] = useState(null)
@@ -71,34 +68,6 @@ export default function Bills() {
     .filter((b) => !q || `${b.patient.name} ${b.no} ${b.patient.phone}`.toLowerCase().includes(q.toLowerCase()))
     .sort((a, b) => (b.date + b.time).localeCompare(a.date + a.time)), [bills, range, doctorF, q])
   const rowsTotal = rows.reduce((a, b) => a + b.total, 0)
-
-  /* ---- new bill form ---- */
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
-  const doc = doctors.find((d) => d.id === form.doctorId)
-  const prior = form.name && form.doctorId && !form.forceCharge ? store.activeValidity(form.name, form.doctorId) : null
-  const anyPrior = form.name ? store.activeValidity(form.name, null) : null
-  const suggestions = form.name.length >= 2 ? known.filter((p) => p.name.toLowerCase().includes(form.name.toLowerCase()) && p.name.toLowerCase() !== form.name.toLowerCase()).slice(0, 5) : []
-  const baseFee = prior ? 0 : Number(doc?.fee) || 0
-  const extrasTotal = form.extras.reduce((a, e) => a + (Number(e.amount) || 0), 0)
-  const total = Math.max(0, baseFee + extrasTotal - (Number(form.discount) || 0))
-
-  const pickPatient = (p) => setForm((f) => ({ ...f, name: p.name, age: p.age ?? '', gender: p.gender || '', phone: p.phone || '', doctorId: f.doctorId || p.lastDoctorId }))
-  const setExtra = (i, k, v) => setForm((f) => ({ ...f, extras: f.extras.map((e, j) => (j === i ? { ...e, [k]: v } : e)) }))
-
-  const submit = (e) => {
-    e?.preventDefault()
-    if (!form.name.trim()) return toast('Patient name required', '', 'warn')
-    if (!form.doctorId) return toast('Choose a doctor', '', 'warn')
-    const bill = store.createBill({
-      patient: { name: form.name, age: form.age, gender: form.gender, phone: form.phone },
-      doctorId: form.doctorId, extras: form.extras, discount: form.discount, method: form.method, note: form.note,
-      createdBy: user?.name || 'Admin', forceCharge: form.forceCharge,
-    })
-    toast(bill.type === 'follow-up' ? 'Free follow-up recorded' : 'Bill created', `${bill.no} · ${bill.patient.name} · ${money(bill.total)}`)
-    setOpen(false)
-    setForm(BLANK)
-    setView(bill)
-  }
 
   const print = (bill) => { if (!printHtml(`Bill ${bill.no}`, billHtml(bill))) toast('Pop-up blocked', 'Allow pop-ups to print', 'warn') }
 
@@ -130,14 +99,14 @@ export default function Bills() {
   return (
     <>
       <PageHeader title="Billing" subtitle={`Consultation bills. A paid visit gives a free follow-up with the same doctor for ${store.VALIDITY_DAYS} days.`}>
-        <Button onClick={() => { setForm(BLANK); setOpen(true) }}><Plus size={16} /> New bill</Button>
+        <Button onClick={() => navigate('/billing/new')}><Plus size={16} /> New bill</Button>
       </PageHeader>
 
       <div className="ad-grid ad-stats" style={{ marginBottom: 18 }}>
         <StatCard index={0} icon={DollarSign} tone="brand" value={money(summary.today)} label={`Collected today · ${summary.todayCount} bill${summary.todayCount === 1 ? '' : 's'}`} trend={`${summary.todayFollowUps} free follow-up${summary.todayFollowUps === 1 ? '' : 's'}`} up />
         <StatCard index={1} icon={Receipt} tone="green" value={money(summary.month)} label="This month (consultations)" trend={`week ${money(summary.week)}`} up />
-        <StatCard index={2} icon={BadgeCheck} tone="violet" value={money(summary.pharmacyToday)} label="Pharmacy today" trend={`month ${money(summary.pharmacyMonth)}`} up />
-        <StatCard index={3} icon={DollarSign} tone="amber" value={money(summary.combinedToday)} label="Total today (clinic + pharmacy)" trend={`all time ${money(summary.all + summary.pharmacyAll)}`} up />
+        <StatCard index={2} icon={BadgeCheck} tone="violet" value={summary.todayFollowUps} label="Free follow-ups today" trend={`${store.VALIDITY_DAYS}-day validity`} up />
+        <StatCard index={3} icon={DollarSign} tone="amber" value={money(summary.all)} label="All-time collections" trend={`${summary.count} bills`} up />
       </div>
 
       {summary.byDoctor.length > 0 && (
@@ -167,74 +136,6 @@ export default function Bills() {
       </div>
 
       <DataTable columns={columns} rows={rows} empty="No bills for this filter." />
-
-      {/* ---- new bill ---- */}
-      <Modal open={open} onClose={() => setOpen(false)} title="New consultation bill" subtitle="Enter the patient and the doctor. Validity is checked automatically." width={640}
-        footer={<><Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button><Button onClick={submit}>Save &amp; view bill · {money(total)}</Button></>}>
-        <form onSubmit={submit} className="ad-form-grid">
-          <FormField label="Patient name" span2>
-            <div style={{ position: 'relative' }}>
-              <input value={form.name} onChange={set('name')} placeholder="Start typing to find a returning patient…" autoFocus autoComplete="off" />
-              {suggestions.length > 0 && (
-                <div className="ad-suggest">
-                  {suggestions.map((p) => {
-                    const v = store.activeValidity(p.name, null)
-                    return (
-                      <button type="button" key={p.name} onClick={() => pickPatient(p)}>
-                        <b>{p.name}</b><span>{p.age ? `${p.age} yrs · ` : ''}{p.visits} visit{p.visits === 1 ? '' : 's'} · last {fmtDate(p.lastVisit)}</span>
-                        {v && <Badge kind="green">Free until {fmtDate(store.validUntil(v))}</Badge>}
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-          </FormField>
-          <FormField label="Age"><input type="number" min="0" max="120" value={form.age} onChange={set('age')} /></FormField>
-          <FormField label="Gender"><select value={form.gender} onChange={set('gender')}><option value="">—</option><option>Female</option><option>Male</option><option>Other</option></select></FormField>
-          <FormField label="Phone"><input value={form.phone} onChange={set('phone')} placeholder="+1 …" /></FormField>
-          <FormField label="Doctor">
-            <select value={form.doctorId} onChange={set('doctorId')}>
-              <option value="">Select doctor…</option>
-              {doctors.filter((d) => d.active !== false).map((d) => <option key={d.id} value={d.id}>{d.name} — {d.specialty} ({money(d.fee)})</option>)}
-            </select>
-          </FormField>
-
-          {prior && (
-            <div className="ad-span2 ad-note ad-note--ok">
-              <BadgeCheck size={16} /> <div><b>Free follow-up.</b> {form.name} paid {money(prior.total)} on {fmtDate(prior.date)} ({prior.no}) with {doc?.name}. Valid until <b>{fmtDate(store.validUntil(prior))}</b>, so the consultation fee is waived.
-                <label style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 6, fontWeight: 600 }}><input type="checkbox" checked={form.forceCharge} onChange={set('forceCharge')} style={{ width: 'auto' }} /> Charge full fee anyway</label></div>
-            </div>
-          )}
-          {!prior && anyPrior && form.doctorId && anyPrior.doctorId !== form.doctorId && (
-            <div className="ad-span2 ad-note">Note: {form.name} has a free visit with {store.getDoctor(anyPrior.doctorId)?.name} until {fmtDate(store.validUntil(anyPrior))}. It does not apply to {doc?.name}.</div>
-          )}
-
-          <FormField label="Extra items (procedures, tests…)" span2>
-            <div style={{ display: 'grid', gap: 8 }}>
-              {form.extras.map((ex, i) => (
-                <div key={i} style={{ display: 'flex', gap: 8 }}>
-                  <input value={ex.label} onChange={(e) => setExtra(i, 'label', e.target.value)} placeholder="e.g. X-ray" style={{ flex: 1 }} />
-                  <input type="number" min="0" value={ex.amount} onChange={(e) => setExtra(i, 'amount', e.target.value)} placeholder="Amount" style={{ width: 110 }} />
-                  <button type="button" className="ad-iconbtn" onClick={() => setForm((f) => ({ ...f, extras: f.extras.filter((_, j) => j !== i) }))}><X size={15} /></button>
-                </div>
-              ))}
-              <button type="button" className="ad-btn ad-btn--ghost ad-btn--sm" style={{ justifySelf: 'start' }} onClick={() => setForm((f) => ({ ...f, extras: [...f.extras, { label: '', amount: '' }] }))}><Plus size={14} /> Add item</button>
-            </div>
-          </FormField>
-          <FormField label="Discount ($)"><input type="number" min="0" value={form.discount} onChange={set('discount')} /></FormField>
-          <FormField label="Payment method"><select value={form.method} onChange={set('method')}>{store.PAYMENT_METHODS.map((m) => <option key={m}>{m}</option>)}</select></FormField>
-          <FormField label="Note (optional)" span2><input value={form.note} onChange={set('note')} placeholder="Printed on the bill" /></FormField>
-
-          <div className="ad-span2 ad-total">
-            <div className="ad-kv"><span>{prior ? 'Follow-up visit' : `Consultation fee${doc ? ` · ${doc.name}` : ''}`}</span><b>{money(baseFee)}</b></div>
-            {extrasTotal > 0 && <div className="ad-kv"><span>Extra items</span><b>{money(extrasTotal)}</b></div>}
-            {Number(form.discount) > 0 && <div className="ad-kv"><span>Discount</span><b>- {money(form.discount)}</b></div>}
-            <div className="ad-kv" style={{ fontSize: 16 }}><span><b>Total</b></span><b>{money(total)}</b></div>
-            {!prior && baseFee > 0 && <small className="ad-muted">This visit gives a free follow-up with {doc?.name} until {fmtDate(store.addDays(store.TODAY, store.VALIDITY_DAYS))}.</small>}
-          </div>
-        </form>
-      </Modal>
 
       {/* ---- view bill ---- */}
       <Modal open={!!view} onClose={() => setView(null)} title={view?.no} subtitle={view && `${fmtDate(view.date)} · ${to12h(view.time)} · billed by ${view.createdBy}`} width={520}

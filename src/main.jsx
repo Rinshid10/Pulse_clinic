@@ -9,6 +9,7 @@ const AdminApp = lazy(() => import('./admin/AdminApp'))
 const StaffApp = lazy(() => import('./staff/StaffApp'))
 const BillingApp = lazy(() => import('./billing/BillingApp'))
 const HrApp = lazy(() => import('./hr/HrApp'))
+const PharmacyApp = lazy(() => import('./pharmacy/PharmacyApp'))
 
 const Loader = ({ color = '#4f6cf7' }) => (
   <div style={{ display: 'grid', placeItems: 'center', minHeight: '100vh', background: '#f4f6fb' }}>
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')).render(
         <Route path="/staff/*" element={<Suspense fallback={<Loader />}><StaffApp /></Suspense>} />
         <Route path="/billing/*" element={<Suspense fallback={<Loader />}><BillingApp /></Suspense>} />
         <Route path="/hr/*" element={<Suspense fallback={<Loader />}><HrApp /></Suspense>} />
+        <Route path="/pharmacy/*" element={<Suspense fallback={<Loader />}><PharmacyApp /></Suspense>} />
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>

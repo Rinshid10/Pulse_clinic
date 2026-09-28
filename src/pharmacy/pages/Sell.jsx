@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { Plus, Minus, Search, Printer, Trash2, Pencil, PackagePlus, ShoppingCart, Pill, DollarSign, History, X, AlertTriangle } from 'lucide-react'
+import { Plus, Minus, Search, Printer, Trash2, Pencil, PackagePlus, ShoppingCart, Pill, DollarSign, History, X, AlertTriangle, Send } from 'lucide-react'
 import PageHeader from '../../admin/components/PageHeader'
 import DataTable from '../../admin/components/DataTable'
 import PharmacyBills, { PharmacyBillDetail, printPharmacyBill } from '../components/PharmacyBills'
+import { RequestMedicineModal, MedicineRequestList } from '../components/MedicineRequests'
 import Modal from '../../admin/components/Modal'
 import FormField from '../../admin/components/FormField'
 import StatCard from '../../admin/components/StatCard'
@@ -16,7 +17,7 @@ import { money, fmtDate, to12h } from '../../admin/utils/format'
 
 const BLANK_MED = { name: '', category: 'Tablet', unit: '', price: '', stock: '' }
 
-export default function Pharmacy() {
+export default function Sell() {
   const toast = useToast()
   const { user } = useAuth()
   const location = useLocation()
@@ -26,6 +27,7 @@ export default function Pharmacy() {
   const [customers] = useStore(() => store.knownCustomers(), [])
   const [doctors] = useStore(() => store.getDoctors(), [])
   const [summary] = useStore(() => store.billingSummary(), [])
+  const [pendingReq] = useStore(() => store.pendingMedicineRequests(), [])
 
   /* ---- sell ---- */
   const [customer, setCustomer] = useState({ name: '', phone: '', age: '' })
@@ -75,6 +77,7 @@ export default function Pharmacy() {
   const [medFilter, setMedFilter] = useState('all')
   const [edit, setEdit] = useState(null)
   const [restockOf, setRestockOf] = useState(null)
+  const [request, setRequest] = useState(null) // { preset }
   const [restockQty, setRestockQty] = useState(10)
   const medRows = useMemo(() => meds.filter((m) => medFilter === 'all' ? true : medFilter === 'low' ? m.stock <= store.LOW_STOCK : m.category === medFilter).sort((a, b) => a.name.localeCompare(b.name)), [meds, medFilter])
   const saveMed = () => {
@@ -91,6 +94,7 @@ export default function Pharmacy() {
     { key: 'act', header: '', width: 130, render: (m) => (
       <div className="ad-rowact">
         <button className="go" title="Add to cart" onClick={() => { addToCart(m); setTab('sell'); toast('Added to cart', m.name, 'info') }}><ShoppingCart size={16} /></button>
+        <button title="Request restock from admin" onClick={() => setRequest({ preset: m.id })}><Send size={16} /></button>
         <button title="Restock" onClick={() => { setRestockOf(m); setRestockQty(10) }}><PackagePlus size={16} /></button>
         <button title="Edit" onClick={() => setEdit({ ...m })}><Pencil size={16} /></button>
         {user?.role === 'admin' && <button className="danger" title="Delete" onClick={() => { store.deleteMedicine(m.id); toast('Medicine removed', m.name, 'info') }}><Trash2 size={16} /></button>}
@@ -109,7 +113,7 @@ export default function Pharmacy() {
 
       <div className="ad-grid ad-stats" style={{ gridTemplateColumns: 'repeat(3, 1fr)', marginBottom: 18 }}>
         <StatCard index={0} icon={DollarSign} tone="green" value={money(summary.pharmacyToday)} label={`Pharmacy sales today · ${bills.filter((b) => b.date === store.TODAY).length} bills`} />
-        <StatCard index={1} icon={Pill} tone="brand" value={meds.length} label="Medicines in catalog" trend={lowCount ? `${lowCount} low stock` : 'stock ok'} up={!lowCount} />
+        <StatCard index={1} icon={Pill} tone="brand" value={meds.length} label="Medicines in catalog" trend={pendingReq ? `${pendingReq} request${pendingReq === 1 ? '' : 's'} awaiting admin` : lowCount ? `${lowCount} low stock` : 'stock ok'} up={!lowCount} />
         <StatCard index={2} icon={DollarSign} tone="violet" value={money(summary.pharmacyMonth)} label="This month" trend={`all time ${money(summary.pharmacyAll)}`} up />
       </div>
 
@@ -226,9 +230,14 @@ export default function Pharmacy() {
             <div className="ad-chips">
               {['all', 'low', ...store.MEDICINE_CATEGORIES].map((c) => <button key={c} className={`ad-chip ${medFilter === c ? 'active' : ''}`} onClick={() => setMedFilter(c)}>{c === 'low' ? <><AlertTriangle size={12} /> Low stock</> : c}</button>)}
             </div>
-            <Button sm style={{ marginLeft: 'auto' }} onClick={() => setEdit({ ...BLANK_MED })}><Plus size={14} /> Add medicine</Button>
+            <Button sm variant="ghost" style={{ marginLeft: 'auto' }} onClick={() => setRequest({ preset: '' })}><Send size={14} /> Request medicine</Button>
+            <Button sm onClick={() => setEdit({ ...BLANK_MED })}><Plus size={14} /> Add medicine</Button>
           </div>
           <DataTable columns={medCols} rows={medRows} empty="No medicines." />
+          <div className="ad-card" style={{ marginTop: 22 }}>
+            <div className="ad-card__head"><h3><Send size={15} style={{ verticalAlign: -2 }} /> Requests to admin</h3><span className="ad-muted" style={{ fontSize: 12.5 }}>Restocks and new medicines you asked for</span></div>
+            <div className="ad-card__body"><MedicineRequestList /></div>
+          </div>
         </>
       )}
 
@@ -251,6 +260,8 @@ export default function Pharmacy() {
           </div>
         )}
       </Modal>
+
+      <RequestMedicineModal open={!!request} preset={request?.preset} onClose={() => setRequest(null)} />
 
       {/* restock */}
       <Modal open={!!restockOf} onClose={() => setRestockOf(null)} title="Restock" subtitle={restockOf && `${restockOf.name} · currently ${restockOf.stock}`} width={380}

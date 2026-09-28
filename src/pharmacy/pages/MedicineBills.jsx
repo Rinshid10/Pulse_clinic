@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Pill, DollarSign, Receipt, Users } from 'lucide-react'
+import { Pill, DollarSign, Receipt, Users, Send } from 'lucide-react'
 import PageHeader from '../../admin/components/PageHeader'
 import StatCard from '../../admin/components/StatCard'
 import { Button } from '../../admin/components/ui'
@@ -8,6 +9,7 @@ import { useAuth } from '../hooks/useAuth'
 import * as store from '../../services/billingStore'
 import { money } from '../../admin/utils/format'
 import PharmacyBills from '../components/PharmacyBills'
+import { RequestMedicineModal, MedicineRequestList } from '../components/MedicineRequests'
 
 export default function MedicineBills() {
   const navigate = useNavigate()
@@ -17,11 +19,14 @@ export default function MedicineBills() {
   const [customers] = useStore(() => store.knownCustomers(), [])
   const todayCount = bills.filter((b) => b.date === store.TODAY).length
   const canSell = user.role !== 'cashier'
+  const [request, setRequest] = useState(false)
+  const [pendingReq] = useStore(() => store.pendingMedicineRequests(), [])
 
   return (
     <>
       <PageHeader title="Medicine bills" subtitle="Every pharmacy sale, with what was bought and who prescribed it.">
-        {canSell && <Button onClick={() => navigate('/billing/pharmacy')}><Pill size={16} /> New medicine bill</Button>}
+        <Button variant="ghost" onClick={() => setRequest(true)}><Send size={16} /> Request medicine{pendingReq > 0 ? ` (${pendingReq} pending)` : ''}</Button>
+        {canSell && <Button onClick={() => navigate('/pharmacy/sell')}><Pill size={16} /> New medicine bill</Button>}
       </PageHeader>
 
       <div className="ad-grid ad-stats" style={{ marginBottom: 18 }}>
@@ -31,7 +36,14 @@ export default function MedicineBills() {
         <StatCard index={3} icon={Users} tone="amber" value={customers.length} label="Pharmacy customers" />
       </div>
 
-      <PharmacyBills onLoadCustomer={canSell ? (c) => navigate('/billing/pharmacy', { state: { customer: c } }) : undefined} />
+      <PharmacyBills onLoadCustomer={canSell ? (c) => navigate('/pharmacy/sell', { state: { customer: c } }) : undefined} />
+
+      <div className="ad-card" style={{ marginTop: 22 }}>
+        <div className="ad-card__head"><h3><Send size={15} style={{ verticalAlign: -2 }} /> Medicine requests to admin</h3><span className="ad-muted" style={{ fontSize: 12.5 }}>Restocks and new medicines asked for by the desk</span></div>
+        <div className="ad-card__body"><MedicineRequestList /></div>
+      </div>
+
+      <RequestMedicineModal open={request} preset="" onClose={() => setRequest(false)} />
     </>
   )
 }
