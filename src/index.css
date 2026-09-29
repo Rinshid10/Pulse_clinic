@@ -521,3 +521,21 @@ a { color: inherit; text-decoration: none; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; scroll-behavior: auto; }
 }
+
+/* ===================== Phone bottom navigation (customer site) ===================== */
+.mtab { display: none; }
+@media (max-width: 760px) {
+  .mtab { position: fixed; left: 0; right: 0; bottom: 0; z-index: 120; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-top: 1px solid var(--border); padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); box-shadow: 0 -10px 30px -14px rgba(8,12,24,.25); }
+  .mtab__item { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 2px; border: none; background: none; color: var(--text-3); font: inherit; font-size: 11px; font-weight: 700; border-radius: 12px; -webkit-tap-highlight-color: transparent; }
+  .mtab__item.active { color: var(--brand); }
+  .mtab__icon { position: relative; display: grid; place-items: center; width: 40px; height: 28px; border-radius: 10px; }
+  .mtab__item.active .mtab__icon { background: var(--brand-soft); }
+  .mtab__badge { position: absolute; top: -4px; right: 2px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 99px; background: var(--brand); color: #fff; font-size: 10px; font-style: normal; font-weight: 800; display: grid; place-items: center; }
+  .mtab__icon--cta { background: var(--brand); color: #fff; width: 44px; height: 30px; box-shadow: var(--shadow-brand); }
+  .mtab__item--cta { color: var(--brand); }
+  main { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .footer { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  .toasts { bottom: calc(80px + env(safe-area-inset-bottom)); left: 12px; right: 12px; }
+  .toast { min-width: 0; }
+  .scrim { padding-bottom: 0; }
+}

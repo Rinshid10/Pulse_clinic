@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import MobileTabBar from './components/MobileTabBar'
 import DoctorModal from './components/DoctorModal'
 import BookingModal from './components/BookingModal'
 import Home from './pages/Home'
@@ -84,6 +85,7 @@ function Shell() {
       </main>
 
       <Footer go={go} onBook={() => openBooking()} />
+      <MobileTabBar view={view} go={go} onBook={() => openBooking()} bookingsCount={bookings.filter((b) => b.status !== 'Cancelled').length} />
 
       <DoctorModal
         doctor={activeDoctor}

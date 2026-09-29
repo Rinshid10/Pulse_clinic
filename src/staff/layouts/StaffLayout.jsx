@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import Topbar from '../components/Topbar'
+import MobileNav from '../components/MobileNav'
 import { STAFF_NAV, TITLES } from '../utils/constants'
 
 export default function StaffLayout() {
@@ -40,6 +41,7 @@ export default function StaffLayout() {
           </main>
         </div>
       </div>
+      <MobileNav menuOpen={menuOpen} onMore={() => setMenuOpen((o) => !o)} />
     </div>
   )
 }

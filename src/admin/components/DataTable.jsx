@@ -33,7 +33,7 @@ export default function DataTable({ columns, rows, empty = 'Nothing to show here
                 transition={{ duration: 0.3, delay: Math.min(i * 0.025, 0.3) }}
               >
                 {columns.map((c) => (
-                  <td key={c.key}>{c.render ? c.render(row) : row[c.key]}</td>
+                  <td key={c.key} data-label={typeof c.header === 'string' ? c.header : ''}>{c.render ? c.render(row) : row[c.key]}</td>
                 ))}
               </motion.tr>
             ))}

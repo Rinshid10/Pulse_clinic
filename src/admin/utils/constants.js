@@ -7,14 +7,14 @@ import {
 export const NAV = [
   { to: '/admin', label: 'Dashboard', Icon: LayoutDashboard, end: true, roles: ['admin', 'manager', 'receptionist'] },
   { to: '/admin/doctors', label: 'Doctors', Icon: Stethoscope, roles: ['admin', 'manager'] },
-  { to: '/admin/availability', label: 'Availability & Leave', Icon: CalendarClock, roles: ['admin', 'manager', 'receptionist'] },
-  { to: '/admin/appointments', label: 'Appointments', Icon: CalendarDays, roles: ['admin', 'manager', 'receptionist'] },
+  { to: '/admin/availability', label: 'Availability & Leave', short: 'Leave', Icon: CalendarClock, roles: ['admin', 'manager', 'receptionist'] },
+  { to: '/admin/appointments', label: 'Appointments', short: 'Appts', Icon: CalendarDays, roles: ['admin', 'manager', 'receptionist'] },
   { to: '/admin/patients', label: 'Patients', Icon: Users, roles: ['admin', 'manager', 'receptionist'] },
   { to: '/admin/staff', label: 'Staff', Icon: BriefcaseBusiness, roles: ['admin', 'manager'] },
-  { to: '/admin/medicines', label: 'Medicine stock', Icon: Pill, roles: ['admin', 'manager'] },
+  { to: '/admin/medicines', label: 'Medicine stock', short: 'Stock', Icon: Pill, roles: ['admin', 'manager'] },
   { to: '/admin/analytics', label: 'Analytics', Icon: BarChart3, roles: ['admin', 'manager'] },
   { to: '/admin/theme', label: 'Theme', Icon: Palette, roles: ['admin'] },
-  { to: '/admin/content', label: 'Website Content', Icon: FileText, roles: ['admin'] },
+  { to: '/admin/content', label: 'Website Content', short: 'Content', Icon: FileText, roles: ['admin'] },
   { to: '/admin/notifications', label: 'Notifications', Icon: Bell, roles: ['admin', 'manager', 'receptionist'] },
 ]
 

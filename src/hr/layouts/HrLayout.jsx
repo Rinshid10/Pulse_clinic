@@ -4,10 +4,14 @@ import { motion } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import Topbar from '../components/Topbar'
 import { HR_NAV, TITLES } from '../utils/constants'
+import BottomNav from '../../components/BottomNav'
+import { useAuth } from '../hooks/useAuth'
 
 export default function HrLayout() {
   const { pathname } = useLocation()
+  const { user } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const tabs = HR_NAV.filter((n) => !n.roles || n.roles.includes(user?.role)).slice(0, 4)
   const [theme, setTheme] = useState(() => localStorage.getItem('pulse-hr-theme') || 'light')
 
   useEffect(() => {
@@ -40,6 +44,7 @@ export default function HrLayout() {
           </main>
         </div>
       </div>
+      <BottomNav tabs={tabs} menuOpen={menuOpen} onMore={() => setMenuOpen((o) => !o)} />
     </div>
   )
 }

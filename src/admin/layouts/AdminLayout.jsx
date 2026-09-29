@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import Sidebar from '../components/Sidebar'
 import Topbar from '../components/Topbar'
 import { NAV } from '../utils/constants'
+import BottomNav from '../../components/BottomNav'
+import { useAuth } from '../hooks/useAuth'
 
 const TITLES = {
   '/admin': { t: 'Dashboard', s: 'Clinic overview for today' },
@@ -21,7 +23,9 @@ const TITLES = {
 
 export default function AdminLayout() {
   const { pathname } = useLocation()
+  const { user } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+  const tabs = NAV.filter((n) => !n.roles || n.roles.includes(user?.role)).slice(0, 4)
   const [theme, setTheme] = useState(() => localStorage.getItem('pulse-admin-theme') || 'light')
 
   useEffect(() => {
@@ -54,6 +58,7 @@ export default function AdminLayout() {
           </main>
         </div>
       </div>
+      <BottomNav tabs={tabs} menuOpen={menuOpen} onMore={() => setMenuOpen((o) => !o)} />
     </div>
   )
 }

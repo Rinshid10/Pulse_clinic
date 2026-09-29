@@ -6,7 +6,7 @@ const ALL = ['admin', 'cashier']
 export const BILLING_NAV = [
   { to: '/billing', label: 'Overview', Icon: LayoutDashboard, end: true, roles: ALL },
   { to: '/billing/new', label: 'New bill', Icon: FilePlus2, roles: ALL },
-  { to: '/billing/bills', label: 'Consultation bills', Icon: Receipt, roles: ALL },
+  { to: '/billing/bills', label: 'Consultation bills', short: 'Bills', Icon: Receipt, roles: ALL },
 ]
 
 export const TITLES = {

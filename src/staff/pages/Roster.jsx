@@ -12,6 +12,7 @@ import * as store from '../../services/staffStore'
 import { SHIFTS, WARDS } from '../../data/staff'
 import { fmtDate } from '../../admin/utils/format'
 import { StatusBadge, ShiftCell, StaffCell } from '../../components/staff-common'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -19,6 +20,7 @@ export default function Roster() {
   const { user } = useAuth()
   const isManager = false // assignment moved to the HR console
   const toast = useToast()
+  const isMobile = useIsMobile()
   const [ws, setWs] = useState(() => store.weekStart(store.TODAY))
   const week = useMemo(() => Array.from({ length: 7 }, (_, i) => store.addDays(ws, i)), [ws])
   const [deptFilter, setDeptFilter] = useState('all')
@@ -92,6 +94,22 @@ export default function Roster() {
           {Object.entries(SHIFTS).map(([k, v]) => <span key={k}><i style={{ background: v.color }} />{v.label}{v.start && ` ${v.start}–${v.end}`}</span>)}
         </div>
       </div>
+
+      {isMobile && (
+        <div className="ad-card" style={{ marginBottom: 14 }}>
+          <div className="ad-card__head"><h3>My shifts</h3><span className="ad-muted" style={{ fontSize: 12 }}>Tap an upcoming shift to request a change</span></div>
+          <div className="ad-card__body st-list">
+            {week.map((d, i) => { const sh = cell(user.id, d); const m = SHIFTS[sh?.shift]; const can = sh && sh.shift !== 'off' && d >= store.TODAY
+              return (
+                <div key={d} className={`st-row ${can ? 'st-row--tap' : ''}`} onClick={can ? () => openRequest(sh) : undefined}>
+                  <div style={{ width: 44 }}><b style={{ display: 'block', fontSize: 11, color: d === store.TODAY ? 'var(--ad-brand)' : 'var(--ad-text-3)', textTransform: 'uppercase' }}>{DOW[i]}</b><b style={{ fontSize: 16 }}>{Number(d.slice(-2))}</b></div>
+                  <div style={{ flex: 1 }}><b style={{ color: m?.color || 'var(--ad-text-3)' }}>{m?.label || 'Not rostered'}</b>{sh && sh.shift !== 'off' && <><br /><small className="ad-muted">{m.start}–{m.end} · {sh.ward}</small></>}</div>
+                  {can && <ArrowLeftRight size={16} className="ad-muted" />}
+                </div>
+              ) })}
+          </div>
+        </div>
+      )}
 
       <div className="ad-card">
         <div className="st-roster">

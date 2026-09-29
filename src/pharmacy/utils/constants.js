@@ -5,8 +5,8 @@ const ALL = ['admin', 'pharmacist']
 /* Sidebar nav — add new pharmacy features here. */
 export const PHARMACY_NAV = [
   { to: '/pharmacy', label: 'Overview', Icon: LayoutDashboard, end: true, roles: ALL },
-  { to: '/pharmacy/sell', label: 'Sell medicines', Icon: ShoppingCart, roles: ALL },
-  { to: '/pharmacy/medicine-bills', label: 'Medicine bills', Icon: FileText, roles: ALL },
+  { to: '/pharmacy/sell', label: 'Sell medicines', short: 'Sell', Icon: ShoppingCart, roles: ALL },
+  { to: '/pharmacy/medicine-bills', label: 'Medicine bills', short: 'Bills', Icon: FileText, roles: ALL },
 ]
 
 export const TITLES = {

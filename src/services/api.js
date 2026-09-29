@@ -65,8 +65,10 @@ export async function bootstrap() {
     const data = await request('/bootstrap', { timeout: 4000 })
     Object.entries(data).forEach(([k, v]) => { cache.set(k, v); toLocal(k, v) })
     online = true
-    subscribeServer()
     flushPending()
+    // Open the live-events stream only after the app has mounted: an open SSE stream
+    // holds one of the browser's per-host connections, which would delay first paint.
+    setTimeout(subscribeServer, 2500)
   } catch (e) {
     online = false
     console.warn('[pulse] API unreachable, running from the local copy:', e.message)

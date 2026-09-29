@@ -116,5 +116,127 @@
 /* ---- Small-screen fixes ---- */
 .admin.staff .ad-grid > * { min-width: 0; }
 .st-row { flex-wrap: wrap; }
-.st-row .ad-muted { flex: 1 1 120px; min-width: 0; }
+.st-row span.ad-muted { flex: 1 1 120px; min-width: 0; }
 @media (max-width: 560px) { .admin.staff .st-today { display: none; } }
+
+/* =====================================================================
+   PHONE LAYOUT (≤ 760px) — the staff portal behaves like a mobile app:
+   bottom tab bar, compact header, tables as cards, bottom-sheet forms.
+   Desktop (> 760px) is untouched.
+   ===================================================================== */
+.st-row--tap { cursor: pointer; }
+
+@media (max-width: 760px) {
+  /* ---- shell ---- */
+  .admin.staff .ad-content { padding: 14px 14px calc(84px + env(safe-area-inset-bottom)); }
+  .admin.staff .ad-topbar { position: sticky; top: 0; z-index: 30; padding: 10px 14px; padding-top: calc(10px + env(safe-area-inset-top)); gap: 8px; }
+  .admin.staff .ad-topbar__title { display: block; flex: 1; min-width: 0; }
+  .admin.staff .ad-topbar__title b { font-size: 17px; }
+  .admin.staff .ad-topbar__title span { display: none; }
+  .admin.staff .ad-menu-btn { display: none; }
+  .admin.staff .ad-user { padding: 0; margin-left: 0; }
+  .admin.staff .ad-user__meta { display: none; }
+  .admin.staff .st-today { display: none; }
+
+  /* ---- bottom tab bar ---- */
+  .admin.staff .ad-sidebar { z-index: 50; width: min(84vw, 320px); padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+  .admin.staff .ad-side-scrim { z-index: 45; }
+
+  /* ---- page header ---- */
+  .admin.staff .ad-page-head { flex-direction: column; align-items: stretch; gap: 12px; margin-bottom: 14px; }
+  .admin.staff .ad-page-head h1 { font-size: 21px; }
+  .admin.staff .ad-page-head p { font-size: 13px; }
+  .admin.staff .ad-page-head > div:last-child { display: grid !important; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
+  .admin.staff .ad-page-head .ad-btn { justify-content: center; padding: 12px 14px; font-size: 14px; }
+  .admin.staff .ad-page-head .ad-seg { display: flex; }
+  .admin.staff .ad-page-head .ad-seg button { flex: 1; }
+  .admin.staff .ad-page-head select { width: 100%; }
+
+  /* ---- stats: two compact tiles per row ---- */
+  .admin.staff .ad-stats { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+  .admin.staff .ad-stat { padding: 14px; }
+  .admin.staff .ad-stat__value { font-size: 20px; }
+  .admin.staff .ad-stat__label { font-size: 12px; }
+  .admin.staff .ad-stat__icon { width: 34px; height: 34px; }
+  .admin.staff .ad-trend { display: none; }
+
+  /* ---- cards / rows ---- */
+  .admin.staff .ad-card__head { padding: 12px 14px; }
+  .admin.staff .ad-card__body { padding: 12px 14px; }
+  .admin.staff .ad-cols-2 { gap: 14px; }
+  .admin.staff .st-row { padding: 12px; }
+  .admin.staff .st-list { gap: 8px; }
+
+  /* ---- balance tiles ---- */
+  .admin.staff .st-balance { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 6px; margin: 0 -14px 14px; padding-left: 14px; padding-right: 14px; scroll-snap-type: x mandatory; }
+  .admin.staff .st-bal { min-width: 150px; scroll-snap-align: start; }
+  .admin.staff .st-balance::-webkit-scrollbar { display: none; }
+
+  /* ---- week strip scrolls sideways ---- */
+  .admin.staff .st-week { display: flex; overflow-x: auto; gap: 8px; margin: 0 -14px; padding: 0 14px 6px; scroll-snap-type: x mandatory; }
+  .admin.staff .st-day { min-width: 68px; scroll-snap-align: start; }
+  .admin.staff .st-week::-webkit-scrollbar { display: none; }
+
+  /* ---- toolbars: chips scroll in one line ---- */
+  .admin.staff .ad-toolbar { flex-wrap: nowrap; overflow-x: auto; margin: 0 -14px 12px; padding: 0 14px 4px; }
+  .admin.staff .ad-toolbar::-webkit-scrollbar { display: none; }
+  .admin.staff .ad-chips { flex-wrap: nowrap; }
+  .admin.staff .ad-chip { white-space: nowrap; padding: 8px 13px; }
+  .admin.staff .ad-search { flex: 0 0 auto; }
+  .admin.staff .st-legend { display: none; }
+
+  /* ---- tables become cards ---- */
+  .admin.staff .ad-tablewrap { overflow: visible; }
+  .admin.staff .ad-table { display: block; }
+  .admin.staff .ad-table thead { display: none; }
+  .admin.staff .ad-table tbody { display: grid; gap: 10px; }
+  .admin.staff .ad-table tr { display: block; padding: 12px 14px; border: 1px solid var(--ad-border); border-radius: 14px; background: var(--ad-surface-2); }
+  .admin.staff .ad-table td { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 5px 0; border: none; font-size: 13.5px; text-align: right; }
+  .admin.staff .ad-table td::before { content: attr(data-label); flex-shrink: 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--ad-text-3); text-align: left; }
+  .admin.staff .ad-table td[data-label=""] { justify-content: flex-end; padding-top: 8px; }
+  .admin.staff .ad-table td[data-label=""]::before { display: none; }
+  .admin.staff .ad-table td:first-child { text-align: left; }
+  .admin.staff .ad-table td:first-child::before { display: none; }
+  .admin.staff .ad-table td:first-child > * { flex: 1; }
+  .admin.staff .ad-table .ad-cell-user { text-align: left; }
+  .admin.staff .ad-rowact button { width: 40px; height: 40px; }
+  .admin.staff .ad-card > .ad-tablewrap { padding: 0; }
+  .admin.staff .ad-card:has(> .ad-tablewrap) { background: transparent; border: none; box-shadow: none; }
+
+  /* ---- roster grid keeps a horizontal scroll ---- */
+  .admin.staff .st-roster table { min-width: 720px; }
+  .admin.staff .st-roster td:first-child { min-width: 150px; }
+
+  /* ---- forms & modals: bottom sheets with big touch targets ---- */
+  .admin.staff .ad-scrim { align-items: flex-end; padding: 0; }
+  .admin.staff .ad-modal { width: 100%; max-width: none; max-height: 92vh; border-radius: 22px 22px 0 0; margin: 0; padding-bottom: env(safe-area-inset-bottom); }
+  .admin.staff .ad-modal__head { padding: 18px 18px 0; }
+  .admin.staff .ad-modal__head::before { content: ''; position: absolute; left: 50%; top: 8px; transform: translateX(-50%); width: 40px; height: 4px; border-radius: 99px; background: var(--ad-border-2); }
+  .admin.staff .ad-modal { position: relative; }
+  .admin.staff .ad-modal__body { padding: 16px 18px; }
+  .admin.staff .ad-modal__foot { padding: 12px 18px calc(16px + env(safe-area-inset-bottom)); position: sticky; bottom: 0; background: var(--ad-surface); display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 10px; }
+  .admin.staff .ad-modal__foot .ad-btn { justify-content: center; padding: 13px 14px; font-size: 14.5px; }
+  .admin.staff .ad-confirm { border-radius: 22px 22px 0 0; }
+  .admin.staff .ad-field input, .admin.staff .ad-field select, .admin.staff .ad-field textarea { padding: 12px 13px; font-size: 15px; }
+  .admin.staff .ad-form-grid { gap: 12px; }
+  .admin.staff .ad-btn { min-height: 40px; }
+  .admin.staff .ad-btn--sm { min-height: 34px; }
+
+  /* ---- profile ---- */
+  .admin.staff .st-profile-head { flex-direction: column; text-align: center; }
+  .admin.staff .st-profile-head > div:last-child { align-items: center !important; }
+  .admin.staff .st-health { grid-template-columns: 1fr 1fr; }
+
+  /* ---- salary slip ---- */
+  .admin.staff .st-slip__head { padding: 16px; }
+  .admin.staff .st-slip__net { text-align: left; }
+
+  /* ---- toasts above the tab bar ---- */
+  .admin.staff .ad-toasts { left: 12px; right: 12px; bottom: calc(76px + env(safe-area-inset-bottom)); }
+  .admin.staff .ad-toast { width: 100%; }
+}
+
+@media (max-width: 760px) {
+  .admin.staff .ad-page-head .ad-seg button { white-space: nowrap; padding: 9px 10px; font-size: 12.5px; }
+  .admin.staff .st-row > svg { flex: 0 0 auto; }
+}
