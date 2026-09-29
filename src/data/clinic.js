@@ -149,3 +149,11 @@ export const TESTIMONIALS = [
   { name: 'David Mitchell', role: 'Patient · Dermatology', rating: 5, color: '#f59e0b',
     text: 'Finally found a clinic that takes skin health seriously. Clear advice, real results, zero waiting around.' },
 ]
+
+/* Admin notification seed (fixed ids so the server seed matches the front-end). */
+export const NOTIFICATIONS = [
+  { id: 'n1', type: 'booking', title: 'New booking received', body: 'Olivia Bennett booked Cardiology for today 09:00.', time: '5m ago', read: false },
+  { id: 'n2', type: 'cancel', title: 'Appointment cancelled', body: 'James Anderson cancelled his Neurology visit.', time: '40m ago', read: false },
+  { id: 'n3', type: 'leave', title: 'Doctor on leave', body: 'Dr. Daniel Weiss is on leave today.', time: '2h ago', read: false },
+  { id: 'n4', type: 'system', title: 'Theme updated', body: 'Website theme was changed to “Ocean”.', time: '1d ago', read: true },
+]

@@ -2,6 +2,7 @@ import { StrictMode, Suspense, lazy } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import App from './App'
+import { api } from './services/api'
 import './index.css'
 
 // Admin panel and staff portal are code-split: the customer site never downloads them.
@@ -18,7 +19,9 @@ const Loader = ({ color = '#4f6cf7' }) => (
   </div>
 )
 
-createRoot(document.getElementById('root')).render(
+const root = createRoot(document.getElementById('root'))
+root.render(<Loader />)
+api.bootstrap().finally(() => root.render(
   <StrictMode>
     <BrowserRouter>
       <Routes>
@@ -30,5 +33,5 @@ createRoot(document.getElementById('root')).render(
         <Route path="/*" element={<App />} />
       </Routes>
     </BrowserRouter>
-  </StrictMode>
-)
+  </StrictMode>,
+))

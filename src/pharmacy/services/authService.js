@@ -1,18 +1,33 @@
-/* Pharmacy desk auth — separate session from the billing desk, admin console and staff portal. */
-const SESSION_KEY = 'pulse-pharmacy-session'
+/* pharmacy console auth — POST /api/auth/login, session kept in localStorage.
+   If the API is unreachable the seeded demo accounts below still work offline. */
+import { api } from '../../services/api'
 
-const USERS = [
-  { id: 'pu1', email: 'admin@pulse.com',    password: 'admin123', name: 'Amelia Hart', role: 'admin',      color: '#4f6cf7' },
-  { id: 'pu2', email: 'pharmacy@pulse.com', password: 'admin123', name: 'Aisha Khan',  role: 'pharmacist', color: '#a855f7' },
-]
+const SESSION_KEY = 'pulse-pharmacy-session'
+const APP = 'pharmacy'
 
 export const ROLE_LABEL = { admin: 'Administrator', pharmacist: 'Pharmacist' }
 
-export function login({ email, password }) {
-  const user = USERS.find((u) => u.email === email.trim().toLowerCase() && u.password === password)
-  if (!user) throw new Error('Invalid email or password')
-  const session = { id: user.id, name: user.name, email: user.email, role: user.role, color: user.color }
+const FALLBACK_USERS = () => [
+  { id: 'u1', email: 'admin@pulse.com', password: 'admin123', name: 'Amelia Hart', role: 'admin', color: '#4f6cf7' },
+  { id: 'pu2', email: 'pharmacy@pulse.com', password: 'admin123', name: 'Aisha Khan', role: 'pharmacist', color: '#a855f7' },
+]
+
+const toSession = (u, token) => ({ id: u.id, name: u.name, email: u.email, role: u.roles?.[APP] || u.role, color: u.color, doctorId: u.doctorId || null, designation: u.designation || '', token: token || null })
+
+export async function login({ email, password }) {
+  const e = String(email || '').trim().toLowerCase()
+  let session
+  if (api.isOnline()) {
+    const { token, user } = await api.login(e, password)
+    if (!user.apps?.includes(APP)) throw new Error('This account has no access to this console')
+    session = toSession(user, token)
+  } else {
+    const u = FALLBACK_USERS().find((x) => x.email === e && x.password === password)
+    if (!u) throw new Error('Invalid email or password')
+    session = toSession({ ...u, roles: { [APP]: u.role } })
+  }
   localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  api.refresh()
   return session
 }
 
@@ -28,4 +43,4 @@ export function currentUser() {
   }
 }
 
-export const DEMO_USERS = USERS.map(({ email, role }) => ({ email, label: ROLE_LABEL[role] }))
+export const DEMO_USERS = FALLBACK_USERS().map(({ email, role }) => ({ email, label: ROLE_LABEL[role] }))

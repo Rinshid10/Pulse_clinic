@@ -2,20 +2,19 @@
    Shared clinic store — single source of truth for BOTH the
    customer website and the admin panel.
 
-   Backed by localStorage (mock layer). Every domain service in
-   src/admin/services/* delegates here, and the customer site
-   reads from here too — so admin changes apply instantly.
-
-   To move to a real backend later: replace the read()/write()
-   bodies (or each getter/saver fn) with API calls. The shapes
-   returned here are the contract.
+   Backed by the Pulse API (Node + MongoDB, see server/). read()
+   serves from the in-memory cache filled at startup by api.bootstrap();
+   write() updates the cache, mirrors to localStorage as an offline copy,
+   notifies listeners and PUTs the key to the server (src/services/api.js).
    ============================================================ */
 
 import {
   DOCTORS as SEED_DOCTORS,
   APPOINTMENTS as SEED_APPTS,
   TESTIMONIALS as SEED_TESTIMONIALS,
+  NOTIFICATIONS as SEED_NOTIFICATIONS,
 } from '../data/clinic'
+import { api, cache } from './api'
 
 export const TODAY = '2026-06-29'
 
@@ -33,18 +32,24 @@ const KEYS = {
 
 /* ---------- low-level persistence ---------- */
 const read = (key, fallback) => {
+  if (cache.has(key)) return cache.get(key)
   try {
     const raw = localStorage.getItem(key)
-    return raw == null ? fallback : JSON.parse(raw)
+    if (raw == null) return fallback
+    const v = JSON.parse(raw)
+    cache.set(key, v)
+    return v
   } catch {
     return fallback
   }
 }
 
 const write = (key, value) => {
-  localStorage.setItem(key, JSON.stringify(value))
+  cache.set(key, value)
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* offline copy is best effort */ }
   // notify same-tab listeners (the native 'storage' event only fires cross-tab)
   window.dispatchEvent(new CustomEvent('pulse:store', { detail: { key } }))
+  api.sync(key, value)
   return value
 }
 
@@ -207,10 +212,13 @@ export const saveThemeColors = (colors) => write(KEYS.themeColors, colors)
 export const resetThemeColors = () => write(KEYS.themeColors, {})
 /* Theme mode is stored as a RAW string (not JSON) to stay compatible
    with the customer site's existing localStorage('pulse-theme') usage. */
-export const getThemeMode = () => localStorage.getItem(KEYS.themeMode) || 'light'
+export const getThemeMode = () => (cache.has(KEYS.themeMode) ? cache.get(KEYS.themeMode) : localStorage.getItem(KEYS.themeMode)) || 'light'
 export const setThemeMode = (mode) => {
+  if (getThemeMode() === mode && cache.has(KEYS.themeMode)) return mode
+  cache.set(KEYS.themeMode, mode)
   localStorage.setItem(KEYS.themeMode, mode)
   window.dispatchEvent(new CustomEvent('pulse:store', { detail: { key: KEYS.themeMode } }))
+  api.sync(KEYS.themeMode, mode)
   return mode
 }
 
@@ -266,12 +274,7 @@ export const resetContent = () => write(KEYS.content, {})
 /* ============================================================
    NOTIFICATIONS
    ============================================================ */
-const seedNotifications = () => [
-  { id: uid('n'), type: 'booking', title: 'New booking received', body: 'Olivia Bennett booked Cardiology for today 09:00.', time: '5m ago', read: false },
-  { id: uid('n'), type: 'cancel', title: 'Appointment cancelled', body: 'James Anderson cancelled his Neurology visit.', time: '40m ago', read: false },
-  { id: uid('n'), type: 'leave', title: 'Doctor on leave', body: 'Dr. Daniel Weiss is on leave today.', time: '2h ago', read: false },
-  { id: uid('n'), type: 'system', title: 'Theme updated', body: 'Website theme was changed to “Ocean”.', time: '1d ago', read: true },
-]
+const seedNotifications = () => SEED_NOTIFICATIONS.map((n) => ({ ...n }))
 export const getNotifications = () => {
   let list = read(KEYS.notifications, null)
   if (!list) list = write(KEYS.notifications, seedNotifications())
@@ -288,6 +291,15 @@ export const markAllNotificationsRead = () =>
    BOOKINGS (customer-created) — read for admin patient/appt views
    ============================================================ */
 export const getBookings = () => read(KEYS.bookings, [])
+export const addBooking = (record) => {
+  const b = { id: uid('bk'), status: 'Booked', createdAt: new Date().toISOString(), ...record }
+  write(KEYS.bookings, [b, ...getBookings()])
+  return b
+}
+export const setBookingStatus = (id, status) =>
+  write(KEYS.bookings, getBookings().map((b) => (b.id === id ? { ...b, status } : b)))
+export const updateBooking = (id, patch) =>
+  write(KEYS.bookings, getBookings().map((b) => (b.id === id ? { ...b, ...patch } : b)))
 
 /* Reset everything (handy for demos) */
-export const resetAll = () => Object.values(KEYS).forEach((k) => localStorage.removeItem(k))
+export const resetAll = () => Object.values(KEYS).forEach((k) => { cache.delete(k); localStorage.removeItem(k) })

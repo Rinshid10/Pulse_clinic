@@ -1,26 +1,41 @@
-/* Staff auth — users come from the staff store (email + password on the record).
-   Session is plain JSON in localStorage, same as the admin console. */
-import { KEYS, getStaff } from '../../services/staffStore'
+/* staff console auth — POST /api/auth/login, session kept in localStorage.
+   If the API is unreachable the seeded demo accounts below still work offline. */
+import { api } from '../../services/api'
+import { getStaff } from '../../services/staffStore'
 import { STAFF_ROLES } from '../../data/staff'
+const SESSION_KEY = 'pulse-staff-session'
+const APP = 'staff'
 
 export const ROLE_LABEL = STAFF_ROLES
 
-export function login({ email, password }) {
-  const user = getStaff().find((u) => u.email === email.trim().toLowerCase() && u.password === password)
-  if (!user) throw new Error('Invalid email or password')
-  if (user.active === false) throw new Error('This account has been deactivated. Contact HR.')
-  const session = { id: user.id, name: user.name, email: user.email, role: user.role, color: user.color, doctorId: user.doctorId || null }
-  localStorage.setItem(KEYS.session, JSON.stringify(session))
+const FALLBACK_USERS = () => getStaff().filter((s) => s.active !== false)
+
+const toSession = (u, token) => ({ id: u.id, name: u.name, email: u.email, role: u.roles?.[APP] || u.role, color: u.color, doctorId: u.doctorId || null, designation: u.designation || '', token: token || null })
+
+export async function login({ email, password }) {
+  const e = String(email || '').trim().toLowerCase()
+  let session
+  if (api.isOnline()) {
+    const { token, user } = await api.login(e, password)
+    if (!user.apps?.includes(APP)) throw new Error('This account has no access to this console')
+    session = toSession(user, token)
+  } else {
+    const u = FALLBACK_USERS().find((x) => x.email === e && x.password === password)
+    if (!u) throw new Error('Invalid email or password')
+    session = toSession({ ...u, roles: { [APP]: u.role } })
+  }
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+  api.refresh()
   return session
 }
 
 export function logout() {
-  localStorage.removeItem(KEYS.session)
+  localStorage.removeItem(SESSION_KEY)
 }
 
 export function currentUser() {
   try {
-    return JSON.parse(localStorage.getItem(KEYS.session))
+    return JSON.parse(localStorage.getItem(SESSION_KEY))
   } catch {
     return null
   }

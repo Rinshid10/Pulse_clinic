@@ -6,11 +6,20 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "server": "node server/index.js",
+    "seed": "node server/seed.js",
+    "dev:all": "concurrently -n api,web -c blue,green \"npm:server\" \"npm:dev\""
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
     "framer-motion": "^11.18.2",
+    "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.456.0",
+    "mongodb": "^7.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.30.4",
@@ -18,6 +27,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^10.0.5",
     "vite": "^5.4.11"
   }
 }

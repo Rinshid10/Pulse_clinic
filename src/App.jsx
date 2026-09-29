@@ -8,18 +8,15 @@ import Home from './pages/Home'
 import DoctorsPage from './pages/DoctorsPage'
 import MyBookings from './pages/MyBookings'
 import { ToastProvider, useToast } from './hooks/useToast'
-import { applyCustomerTheme, getThemeMode, setThemeMode, subscribe } from './services/clinicStore'
+import { applyCustomerTheme, getThemeMode, setThemeMode, subscribe, getBookings, addBooking as storeAddBooking, setBookingStatus } from './services/clinicStore'
 
-let bookingSeq = 0
 
 function Shell() {
   const [view, setView] = useState('home')
   const [theme, setTheme] = useState(() => getThemeMode())
   const [activeDoctor, setActiveDoctor] = useState(null)
   const [booking, setBooking] = useState({ open: false, preset: null })
-  const [bookings, setBookings] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('pulse-bookings')) || [] } catch { return [] }
-  })
+  const [bookings, setBookings] = useState(() => getBookings())
   const toast = useToast()
 
   // Apply the admin-controlled color theme on load + whenever it changes.
@@ -28,6 +25,7 @@ function Shell() {
     return subscribe((key) => {
       if (!key || key === 'pulse-theme-colors') applyCustomerTheme()
       if (!key || key === 'pulse-theme') setTheme(getThemeMode())
+      if (!key || key === 'pulse-bookings') setBookings(getBookings())
     })
   }, [])
 
@@ -37,16 +35,11 @@ function Shell() {
     applyCustomerTheme()
   }, [theme])
 
-  useEffect(() => {
-    localStorage.setItem('pulse-bookings', JSON.stringify(bookings))
-  }, [bookings])
 
-  const addBooking = (record) => {
-    setBookings((prev) => [{ id: `bk-${Date.now()}-${++bookingSeq}`, status: 'Booked', ...record }, ...prev])
-  }
+  const addBooking = (record) => { storeAddBooking(record) }
 
   const cancelBooking = (id) => {
-    setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: 'Cancelled' } : b)))
+    setBookingStatus(id, 'Cancelled')
     toast('Appointment cancelled', 'Your booking has been cancelled', 'info')
   }
 

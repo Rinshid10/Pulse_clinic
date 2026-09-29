@@ -199,3 +199,14 @@ export const CONCERNS = [
     replies: [{ by: 'Marcus Lee', at: '2026-06-11', text: 'Maintenance fixed it this morning. Thanks for flagging.' }],
   },
 ]
+
+export const HOLIDAYS = [
+  { id: 'h1', date: '2026-07-03', name: 'Independence Day (observed)' },
+  { id: 'h2', date: '2026-09-07', name: 'Labor Day' },
+  { id: 'h3', date: '2026-11-26', name: 'Thanksgiving' },
+  { id: 'h4', date: '2026-12-25', name: 'Christmas Day' },
+]
+export const ANNOUNCEMENTS = [
+  { id: 'an1', title: 'Fire drill on Thursday', body: 'A full building fire drill runs Thursday 2 July at 11:00. Please follow ward wardens to assembly point B.', audience: 'all', date: '2026-06-28', by: 'Amelia Hart' },
+  { id: 'an2', title: 'New ICU handover template', body: 'From next week, ICU nurses use the updated handover sheet available at the nurses’ station.', audience: 'Nursing', date: '2026-06-26', by: 'Marcus Lee' },
+]

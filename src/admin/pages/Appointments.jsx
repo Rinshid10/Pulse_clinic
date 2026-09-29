@@ -44,7 +44,7 @@ export default function Appointments() {
 
   const columns = [
     { key: 'patient', header: 'Patient', render: (a) => (
-      <div className="ad-cell-user"><Avatar name={a.patient} size="sm" /><div><b>{a.patient}</b><br /><small>{a.age} yrs · {a.reason}</small></div></div>
+      <div className="ad-cell-user"><Avatar name={a.patient} size="sm" /><div><b>{a.patient}</b><br /><small>{a.age ? `${a.age} yrs · ` : ''}{a.reason}</small></div></div>
     ) },
     { key: 'doctor', header: 'Doctor', render: (a) => { const d = getDoctor(a.doctorId); return (
       <div className="ad-cell-user"><Avatar name={d?.name || '?'} color={d?.color} size="sm" /><div><b>{d?.name?.replace('Dr. ', '') || '—'}</b><br /><small>{d?.specialty}</small></div></div>

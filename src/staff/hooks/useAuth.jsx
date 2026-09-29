@@ -11,8 +11,8 @@ export function AuthProvider({ children }) {
   // Full, live staff record (profile edits, salary changes) for the logged-in user.
   const [me] = useStore(() => (user ? getStaffMember(user.id) : null), [user?.id])
 
-  const login = (creds) => {
-    const u = authService.login(creds)
+  const login = async (creds) => {
+    const u = await authService.login(creds)
     setUser(u)
     return u
   }

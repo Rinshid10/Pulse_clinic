@@ -7,8 +7,8 @@ export const useAuth = () => useContext(AuthCtx)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => authService.currentUser())
 
-  const login = (creds) => {
-    const u = authService.login(creds)
+  const login = async (creds) => {
+    const u = await authService.login(creds)
     setUser(u)
     return u
   }

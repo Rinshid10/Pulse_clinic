@@ -21,15 +21,9 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    setTimeout(() => {
-      try {
-        login(form)
-        navigate(location.state?.from?.pathname || '/pharmacy', { replace: true })
-      } catch (err) {
-        setError(err.message)
-        setLoading(false)
-      }
-    }, 450)
+    login(form)
+      .then(() => navigate(location.state?.from?.pathname || '/pharmacy', { replace: true }))
+      .catch((err) => { setError(err.message); setLoading(false) })
   }
 
   const fill = (email) => setForm({ email, password: 'admin123' })

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { Activity, Mail, Lock, ArrowRight, ShieldCheck, CalendarClock, Palette } from 'lucide-react'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from '../components/ui'
+import { DEMO_USERS } from '../services/authService'
 
 export default function Login() {
   const { user, login } = useAuth()
@@ -19,18 +20,12 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
-    setTimeout(() => {
-      try {
-        login(form)
-        navigate(location.state?.from?.pathname || '/admin', { replace: true })
-      } catch (err) {
-        setError(err.message)
-        setLoading(false)
-      }
-    }, 500)
+    login(form)
+      .then(() => navigate(location.state?.from?.pathname || '/admin', { replace: true }))
+      .catch((err) => { setError(err.message); setLoading(false) })
   }
 
-  const fill = (email) => setForm({ email, password: 'admin123' })
+  const fill = (email) => setForm({ email, password: DEMO_USERS.find((u) => u.email === email)?.password || 'admin123' })
 
   return (
     <div className="admin" data-admin-theme="light">
@@ -97,10 +92,10 @@ export default function Login() {
             </form>
 
             <div className="ad-login__demo">
-              <b>Demo accounts</b> (password: admin123)
+              <b>Demo accounts</b> (click to fill)
               <div style={{ display: 'grid', gap: 4, marginTop: 8 }}>
                 <button onClick={() => fill('admin@pulse.com')}>admin@pulse.com — Administrator</button>
-                <button onClick={() => fill('manager@pulse.com')}>manager@pulse.com — Manager</button>
+                <button onClick={() => fill('manager@pulse.com')}>manager@pulse.com — Manager (staff123)</button>
                 <button onClick={() => fill('reception@pulse.com')}>reception@pulse.com — Receptionist</button>
               </div>
             </div>
