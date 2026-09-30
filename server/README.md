@@ -46,3 +46,11 @@ Public without a token: doctors, content, theme, doctor leaves, bookings (read +
 1. Create a MongoDB Atlas cluster, copy its connection string into `MONGODB_URI`.
 2. Deploy this repo to a Node host (Render, Railway, Fly, a VPS) with start command `node server/index.js` and env `MONGODB_URI`, `JWT_SECRET`, `CLIENT_ORIGIN=https://pulseclinicpr.netlify.app`. Run `node server/seed.js` once against Atlas.
 3. In Netlify set the build environment variable `VITE_API_URL=https://<your-api-host>/api` and redeploy.
+
+### Vercel
+
+The API is deployed at `https://pulseclinic-server.vercel.app` as a Vercel project whose Root Directory is `server/`. Vercel installs `server/package.json` and runs the app exported from `index.js` as one function, so keep that file's dependencies in step with the root `package.json`.
+
+- Set `MONGODB_URI`, `DB_NAME`, `JWT_SECRET` and `CLIENT_ORIGIN` under Project Settings → Environment Variables, then redeploy.
+- Atlas → Network Access must allow `0.0.0.0/0`, because Vercel has no fixed outgoing IP.
+- `/api/events` (SSE) is cut when the function reaches its maximum duration and the browser reconnects; a change is only pushed to browsers connected to the same function instance, so live refresh between devices is best-effort there.

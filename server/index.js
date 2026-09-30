@@ -22,6 +22,8 @@ const app = express()
 app.use(cors({ origin: (origin, cb) => cb(null, !origin || ORIGINS.includes(origin) || ORIGINS.includes('*')), credentials: false }))
 app.use(express.json({ limit: '10mb' }))
 app.use(authOptional)
+/* On a serverless host there is no startup step, so connect on first request. */
+app.use((_req, res, next) => connect().then(() => next(), (e) => res.status(503).json({ error: `Database unavailable: ${e.message}` })))
 
 /* ---------- SSE hub ---------- */
 const clients = new Set()
@@ -157,7 +159,11 @@ app.delete('/api/:collection/:id', wrap(async (req, res) => {
   res.json({ ok: true })
 }))
 
+/* Vercel imports the app and serves it as a function; everywhere else we listen. */
+if (!process.env.VERCEL) {
+  connect()
+    .then(() => app.listen(PORT, () => console.log(`Pulse API listening on http://localhost:${PORT}  (db: ${process.env.DB_NAME || 'pulse_clinic'})`)))
+    .catch((e) => { console.error('Could not connect to MongoDB:', e.message); process.exit(1) })
+}
 
-connect()
-  .then(() => app.listen(PORT, () => console.log(`Pulse API listening on http://localhost:${PORT}  (db: ${process.env.DB_NAME || 'pulse_clinic'})`)))
-  .catch((e) => { console.error('Could not connect to MongoDB:', e.message); process.exit(1) })
+export default app
